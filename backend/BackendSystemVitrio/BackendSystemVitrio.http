@@ -1,0 +1,6 @@
+@BackendSystemVitrio_HostAddress = http://localhost:5020
+
+GET {{BackendSystemVitrio_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
