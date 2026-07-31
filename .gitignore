@@ -1,0 +1,65 @@
+## .NET build artifacts
+bin/
+obj/
+out/
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Rider
+*.DotSettings.user
+
+## Test / coverage
+[Tt]est[Rr]esult*/
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userprefs
+
+## appsettings sensíveis (mantenha só o appsettings.json base no repo)
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+
+## Docker
+docker-compose.override.yml
+
+## Logs
+*.log
+logs/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## EF Core
+*.dbmdl
+*.edmx.diagram
