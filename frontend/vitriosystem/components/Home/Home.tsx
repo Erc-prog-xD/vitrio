@@ -1,3 +1,4 @@
+import Link from "next/link";
 import "./Home.css";
 
 export default function Home() {
@@ -10,8 +11,8 @@ export default function Home() {
         </div>
 
         <nav>
-          <button className="btn-login">Login</button>
-          <button className="btn-register">Criar Loja</button>
+          <Link href="/login" className="btn-login">Login</Link>
+          <Link href="/register" className="btn-register">Criar Loja</Link>
         </nav>
       </header>
 
@@ -27,9 +28,9 @@ export default function Home() {
             rápido e seguro.
           </p>
 
-          <button className="btn-primary">
+          <Link href="/register" className="btn-primary">
             Começar Agora
-          </button>
+          </Link>
 
         </div>
 
