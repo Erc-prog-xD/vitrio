@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.DTO;
 using BackendSystemVitrio.Models;
@@ -36,8 +37,8 @@ namespace BackendSystemVitrio.Services.AuthService
                 Role = dto.Role,
                 StoreName = dto.StoreName,
                 Phone = dto.Phone,
-                Cpf = dto.Cpf,
-                Cnpj = dto.Cnpj,
+                Cpf = OnlyDigits(dto.Cpf),
+                Cnpj = OnlyDigits(dto.Cnpj),
                 PasswordHash = hash,
                 PasswordSalt = salt
             };
@@ -50,7 +51,11 @@ namespace BackendSystemVitrio.Services.AuthService
 
         public async Task<User?> ValidateCredentialsAsync(LoginDto dto)
         {
-            var user = await _context.User.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var document = OnlyDigits(dto.Document);
+
+            var user = await _context.User
+                .FirstOrDefaultAsync(u => u.Cpf == document || u.Cnpj == document);
+
             if (user is null)
                 return null;
 
@@ -98,6 +103,16 @@ namespace BackendSystemVitrio.Services.AuthService
             using var hmac = new HMACSHA512(salt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
             return computedHash.SequenceEqual(hash);
+        }
+
+        // Remove pontos, traços e barras (ex: "123.456.789-00" -> "12345678900"),
+        // assim o login funciona independente de como o usuário digitar o documento.
+        private static string? OnlyDigits(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return value;
+
+            return Regex.Replace(value, @"\D", "");
         }
     }
 }

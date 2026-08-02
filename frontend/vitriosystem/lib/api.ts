@@ -24,7 +24,7 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  email: string;
+  document: string; // CPF ou CNPJ
   password: string;
 }
 

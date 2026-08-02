@@ -9,7 +9,7 @@ import "./Auth.css";
 export default function Login() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [document, setDocument] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { dados } = await login({ email, password });
+      const { dados } = await login({ document, password });
       if (dados) {
         saveToken(dados.token);
         router.push("/");
@@ -43,12 +43,14 @@ export default function Login() {
         <p className="auth-subtitle">Acesse sua conta para continuar.</p>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
-          <label htmlFor="email">E-mail</label>
+          <label htmlFor="document">CPF ou CNPJ</label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="document"
+            type="text"
+            inputMode="numeric"
+            placeholder="Somente números"
+            value={document}
+            onChange={(e) => setDocument(e.target.value)}
             required
           />
 

@@ -34,7 +34,7 @@ namespace BackendSystemVitrio.Controllers
         {
             var user = await _authService.ValidateCredentialsAsync(dto);
             if (user is null)
-                return Unauthorized(Response<string>.Fail("E-mail ou senha inválidos."));
+                return Unauthorized(Response<string>.Fail("CPF/CNPJ ou senha inválidos."));
 
             var token = _authService.GenerateToken(user);
             var response = new AuthResponseDto { Token = token, ExpiresAt = DateTime.UtcNow.AddHours(8) };
