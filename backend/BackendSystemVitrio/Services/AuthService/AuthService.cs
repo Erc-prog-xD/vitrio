@@ -28,7 +28,6 @@ namespace BackendSystemVitrio.Services.AuthService
         public async Task<User?> RegisterAsync(RegisterDto dto)
         {
             var normalizedCpf = OnlyDigits(dto.Cpf);
-            var normalizedCnpj = OnlyDigits(dto.Cnpj);
 
             if (normalizedCpf is not null)
             {
@@ -43,21 +42,6 @@ namespace BackendSystemVitrio.Services.AuthService
 
             var isShopkeeperWithStore = dto.Role == Role.Shopkeeper && !string.IsNullOrWhiteSpace(dto.StoreName);
 
-            if (isShopkeeperWithStore)
-            {
-                var storeNameExists = await _context.Store
-                    .AnyAsync(s => s.Name.ToLower() == dto.StoreName!.ToLower());
-
-                if (storeNameExists)
-                    return null;
-
-                if (normalizedCnpj is not null)
-                {
-                    var cnpjExists = await _context.Store.AnyAsync(s => s.Cnpj == normalizedCnpj);
-                    if (cnpjExists)
-                        return null;
-                }
-            }
 
             CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
 
@@ -77,21 +61,7 @@ namespace BackendSystemVitrio.Services.AuthService
             try
             {
                 _context.User.Add(user);
-                await _context.SaveChangesAsync(); // gera o Id do usuário, necessário pra Store.UserId
-
-                if (isShopkeeperWithStore)
-                {
-                    var store = new Store
-                    {
-                        Name = dto.StoreName!,
-                        Slug = Slugify(dto.StoreName!),
-                        Cnpj = normalizedCnpj,
-                        UserId = user.Id
-                    };
-
-                    _context.Store.Add(store);
-                    await _context.SaveChangesAsync();
-                }
+                await _context.SaveChangesAsync(); 
 
                 await transaction.CommitAsync();
             }
@@ -114,16 +84,6 @@ namespace BackendSystemVitrio.Services.AuthService
 
             // Primeiro tenta como CPF (pessoa física, dono da conta).
             var user = await _context.User.FirstOrDefaultAsync(u => u.Cpf == document);
-
-            // Se não achou, tenta como CNPJ (agora mora na Store) e pega o dono dela.
-            if (user is null)
-            {
-                var store = await _context.Store
-                    .Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Cnpj == document);
-
-                user = store?.User;
-            }
 
             if (user is null)
                 return null;
@@ -183,21 +143,6 @@ namespace BackendSystemVitrio.Services.AuthService
 
             var digits = Regex.Replace(value, @"\D", "");
             return digits.Length == 0 ? null : digits;
-        }
-
-        private static string Slugify(string value)
-        {
-            var normalized = value.Normalize(NormalizationForm.FormD);
-            var withoutAccents = new string(normalized
-                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                .ToArray());
-
-            var slug = withoutAccents.ToLowerInvariant();
-            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
-            slug = Regex.Replace(slug, @"\s+", "-").Trim('-');
-            slug = Regex.Replace(slug, @"-+", "-");
-
-            return string.IsNullOrEmpty(slug) ? "loja" : slug;
         }
     }
 }

@@ -54,7 +54,7 @@ export default function Login() {
         <p className="auth-subtitle">Acesse sua conta para continuar.</p>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
-          <label htmlFor="document">CPF ou CNPJ</label>
+          <label htmlFor="document">CPF</label>
           <input
             id="document"
             type="text"
@@ -62,7 +62,6 @@ export default function Login() {
             placeholder="000.000.000-00"
             value={document}
             onChange={(e) => setDocument(formatDocument(e.target.value))}
-            maxLength={18}
             required
           />
 

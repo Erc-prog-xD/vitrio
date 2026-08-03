@@ -17,14 +17,12 @@ export interface RegisterPayload {
   email: string;
   password: string;
   role: Role;
-  storeName?: string;
   phone?: string;
   cpf?: string;
-  cnpj?: string;
 }
 
 export interface LoginPayload {
-  document: string; // CPF ou CNPJ
+  document: string; // CPF 
   password: string;
 }
 

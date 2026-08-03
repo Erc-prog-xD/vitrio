@@ -12,7 +12,7 @@ export default function Home() {
 
         <nav>
           <Link href="/login" className="btn-login">Login</Link>
-          <Link href="/register" className="btn-register">Criar Loja</Link>
+          <Link href="/register" className="btn-register">Criar Conta</Link>
         </nav>
       </header>
 

@@ -23,8 +23,7 @@ export function formatCnpj(value: string): string {
 // a partir do 12º dígito, passa a formatar como CNPJ. Usado no login,
 // onde o mesmo campo aceita os dois documentos.
 export function formatDocument(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 14);
-  return digits.length <= 11 ? formatCpf(value) : formatCnpj(value);
+  return formatCpf(value);
 }
 
 // Formata progressivamente enquanto o usuário digita:

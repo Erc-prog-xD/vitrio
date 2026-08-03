@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { register, saveToken, SHOPKEEPER_ROLE } from "@/lib/api";
-import { formatCpf, formatCnpj, isValidCpf, isValidCnpj, formatPhone, isValidPhone } from "@/lib/validators";
+import { formatCpf, isValidCpf, formatPhone, isValidPhone } from "@/lib/validators";
 import "./Auth.css";
 
 export default function Register() {
@@ -14,9 +14,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [storeName, setStoreName] = useState("");
   const [cpf, setCpf] = useState("");
-  const [cnpj, setCnpj] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,8 +22,8 @@ export default function Register() {
     e.preventDefault();
     setError(null);
 
-    if (!cpf.trim() && !cnpj.trim()) {
-      setError("Informe o CPF ou o CNPJ da loja.");
+    if (!cpf.trim()) {
+      setError("Informe o CPF");
       return;
     }
 
@@ -39,10 +37,6 @@ export default function Register() {
       return;
     }
 
-    if (cnpj.trim() && !isValidCnpj(cnpj)) {
-      setError("CNPJ inválido. Confira os números digitados.");
-      return;
-    }
 
     setLoading(true);
 
@@ -53,9 +47,7 @@ export default function Register() {
         password,
         role: SHOPKEEPER_ROLE,
         phone: phone || undefined,
-        storeName,
-        cpf: cpf.trim() || undefined,
-        cnpj: cnpj.trim() || undefined,
+        cpf: cpf.trim() || undefined
       });
 
       if (dados) {
@@ -76,9 +68,9 @@ export default function Register() {
           <h2>Vitrio System</h2>
         </Link>
 
-        <h1>Criar sua loja</h1>
+        <h1>Criar sua Conta</h1>
         <p className="auth-subtitle">
-          Cadastre sua loja para começar a vender no Vitrio System.
+          Cadastre-se para começar a usar o Vitrio System.
         </p>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
@@ -114,15 +106,7 @@ export default function Register() {
             maxLength={15}
           />
 
-          <label htmlFor="storeName">Nome da loja</label>
-          <input
-            id="storeName"
-            value={storeName}
-            onChange={(e) => setStoreName(e.target.value)}
-            required
-          />
-
-          <label htmlFor="cpf">CPF (obrigatório se não tiver CNPJ)</label>
+          <label htmlFor="cpf">CPF</label>
           <input
             id="cpf"
             value={cpf}
@@ -132,20 +116,10 @@ export default function Register() {
             maxLength={14}
           />
 
-          <label htmlFor="cnpj">CNPJ (obrigatório se não tiver CPF)</label>
-          <input
-            id="cnpj"
-            value={cnpj}
-            onChange={(e) => setCnpj(formatCnpj(e.target.value))}
-            placeholder="12.345.678/0001-90"
-            inputMode="numeric"
-            maxLength={18}
-          />
-
           {error && <p className="auth-error">{error}</p>}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Criando..." : "Criar loja"}
+            {loading ? "Criando..." : "Criar conta"}
           </button>
         </form>
 
