@@ -24,6 +24,23 @@ namespace BackendSystemVitrio.Services.AuthService
 
         public async Task<User?> RegisterAsync(RegisterDto dto)
         {
+            var normalizedCpf = OnlyDigits(dto.Cpf);
+            var normalizedCnpj = OnlyDigits(dto.Cnpj);
+
+            if (normalizedCpf is not null)
+            {
+                var cpfExists = await _context.User.AnyAsync(u => u.Cpf == normalizedCpf);
+                if (cpfExists)
+                    return null;
+            }
+
+            if (normalizedCnpj is not null)
+            {
+                var cnpjExists = await _context.User.AnyAsync(u => u.Cnpj == normalizedCnpj);
+                if (cnpjExists)
+                    return null;
+            }
+
             var emailExists = await _context.User.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
                 return null;
@@ -37,14 +54,26 @@ namespace BackendSystemVitrio.Services.AuthService
                 Role = dto.Role,
                 StoreName = dto.StoreName,
                 Phone = dto.Phone,
-                Cpf = OnlyDigits(dto.Cpf),
-                Cnpj = OnlyDigits(dto.Cnpj),
+                Cpf = normalizedCpf,
+                Cnpj = normalizedCnpj,
                 PasswordHash = hash,
                 PasswordSalt = salt
             };
 
             _context.User.Add(user);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Guarda contra a race condition: se dois requests chegarem ao
+                // mesmo tempo com o mesmo CPF/CNPJ/e-mail, os índices únicos do
+                // banco (configurados no AppDbContext) rejeitam o segundo insert
+                // mesmo que ambos tenham passado pelas checagens acima.
+                return null;
+            }
 
             return user;
         }
@@ -105,14 +134,18 @@ namespace BackendSystemVitrio.Services.AuthService
             return computedHash.SequenceEqual(hash);
         }
 
-        // Remove pontos, traços e barras (ex: "123.456.789-00" -> "12345678900"),
-        // assim o login funciona independente de como o usuário digitar o documento.
+        // Remove pontos, traços e barras (ex: "123.456.789-00" -> "12345678900").
+        // Retorna null (não string vazia) quando o valor não veio preenchido,
+        // para não conflitar com outros registros que também não têm o campo -
+        // o Postgres permite múltiplos NULL num índice único, mas não múltiplas
+        // strings vazias.
         private static string? OnlyDigits(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
-                return value;
+                return null;
 
-            return Regex.Replace(value, @"\D", "");
+            var digits = Regex.Replace(value, @"\D", "");
+            return digits.Length == 0 ? null : digits;
         }
     }
 }

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
+import { formatDocument, isValidCpf, isValidCnpj } from "@/lib/validators";
 import "./Auth.css";
 
 export default function Login() {
@@ -17,6 +18,16 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const digits = document.replace(/\D/g, "");
+    const isValidDocument =
+      digits.length === 11 ? isValidCpf(document) : isValidCnpj(document);
+
+    if (!isValidDocument) {
+      setError("Informe um CPF ou CNPJ válido.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -48,9 +59,10 @@ export default function Login() {
             id="document"
             type="text"
             inputMode="numeric"
-            placeholder="Somente números"
+            placeholder="000.000.000-00"
             value={document}
-            onChange={(e) => setDocument(e.target.value)}
+            onChange={(e) => setDocument(formatDocument(e.target.value))}
+            maxLength={18}
             required
           />
 

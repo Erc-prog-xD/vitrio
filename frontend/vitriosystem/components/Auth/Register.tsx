@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { register, saveToken, SHOPKEEPER_ROLE } from "@/lib/api";
+import { formatCpf, formatCnpj, isValidCpf, isValidCnpj, formatPhone, isValidPhone } from "@/lib/validators";
 import "./Auth.css";
 
 export default function Register() {
@@ -14,6 +15,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [storeName, setStoreName] = useState("");
+  const [cpf, setCpf] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,27 @@ export default function Register() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!cpf.trim() && !cnpj.trim()) {
+      setError("Informe o CPF ou o CNPJ da loja.");
+      return;
+    }
+
+    if (phone.trim() && !isValidPhone(phone.trim())) {
+      setError("Telefone inválido. Use o formato (00) 00000-0000.");
+      return;
+    }
+
+    if (cpf.trim() && !isValidCpf(cpf)) {
+      setError("CPF inválido. Confira os números digitados.");
+      return;
+    }
+
+    if (cnpj.trim() && !isValidCnpj(cnpj)) {
+      setError("CNPJ inválido. Confira os números digitados.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -31,7 +54,8 @@ export default function Register() {
         role: SHOPKEEPER_ROLE,
         phone: phone || undefined,
         storeName,
-        cnpj,
+        cpf: cpf.trim() || undefined,
+        cnpj: cnpj.trim() || undefined,
       });
 
       if (dados) {
@@ -81,7 +105,14 @@ export default function Register() {
           />
 
           <label htmlFor="phone">Telefone</label>
-          <input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input
+            id="phone"
+            value={phone}
+            onChange={(e) => setPhone(formatPhone(e.target.value))}
+            placeholder="(00) 00000-0000"
+            inputMode="numeric"
+            maxLength={15}
+          />
 
           <label htmlFor="storeName">Nome da loja</label>
           <input
@@ -91,8 +122,25 @@ export default function Register() {
             required
           />
 
-          <label htmlFor="cnpj">CNPJ</label>
-          <input id="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} required />
+          <label htmlFor="cpf">CPF (obrigatório se não tiver CNPJ)</label>
+          <input
+            id="cpf"
+            value={cpf}
+            onChange={(e) => setCpf(formatCpf(e.target.value))}
+            placeholder="123.456.789-00"
+            inputMode="numeric"
+            maxLength={14}
+          />
+
+          <label htmlFor="cnpj">CNPJ (obrigatório se não tiver CPF)</label>
+          <input
+            id="cnpj"
+            value={cnpj}
+            onChange={(e) => setCnpj(formatCnpj(e.target.value))}
+            placeholder="12.345.678/0001-90"
+            inputMode="numeric"
+            maxLength={18}
+          />
 
           {error && <p className="auth-error">{error}</p>}
 

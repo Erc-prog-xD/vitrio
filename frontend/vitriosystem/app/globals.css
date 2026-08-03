@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --botton-enter: #1d4ed8;
+  --botton-enter-hover: #1e40af;
 }
 
 @theme inline {

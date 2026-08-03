@@ -1,3 +1,4 @@
+
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -23,7 +24,7 @@
 }
 
 .auth-logo h2 {
-    color: #1d4ed8;
+    color: var(--botton-enter);
 }
 
 .auth-card h1 {
@@ -75,12 +76,25 @@
 }
 
 .auth-form .btn-primary {
+    background-color: var(--botton-enter);
     margin-top: 20px;
     width: 100%;
     padding: 14px;
     font-size: 16px;
     border-radius: 10px;
     border: none;
+    cursor: pointer;
+}
+
+.auth-form .btn-primary:hover {
+    background-color: var(--botton-enter-hover);
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
 }
 
 .auth-form .btn-primary:disabled {
@@ -96,7 +110,7 @@
 }
 
 .auth-switch a {
-    color: #1d4ed8;
+    color: var(--botton-enter);
     font-weight: bold;
     text-decoration: none;
 }
