@@ -1,6 +1,5 @@
 using BackendSystemVitrio.Enum;
 
-
 namespace BackendSystemVitrio.Models
 {
     public class User
@@ -8,11 +7,9 @@ namespace BackendSystemVitrio.Models
         public int Id { get; set; }
         public required string Name { get; set; }
         public required string Email { get; set; }
-        
-        public string? StoreName { get; set; }
+
         public string? Phone { get; set; }
         public string? Cpf { get; set; }
-        public string? Cnpj { get; set; }
 
         public required Role Role { get; set; }
 
@@ -21,5 +18,8 @@ namespace BackendSystemVitrio.Models
 
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
         public DateTime? DeletionDate { get; set; } = null;
+
+        // Um lojista tem uma loja; cliente e admin não têm.
+        public Store? Store { get; set; }
     }
 }

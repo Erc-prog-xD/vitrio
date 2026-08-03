@@ -3,6 +3,7 @@ using System;
 using BackendSystemVitrio.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendSystemVitrio.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260803012624_ajust")]
+    partial class ajust
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,9 +32,6 @@ namespace BackendSystemVitrio.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Cnpj")
-                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -73,9 +73,6 @@ namespace BackendSystemVitrio.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Cnpj")
-                        .IsUnique();
-
                     b.HasIndex("Name")
                         .IsUnique();
 
@@ -95,6 +92,9 @@ namespace BackendSystemVitrio.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cnpj")
+                        .HasColumnType("text");
 
                     b.Property<string>("Cpf")
                         .HasColumnType("text");
@@ -128,6 +128,9 @@ namespace BackendSystemVitrio.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Cnpj")
+                        .IsUnique();
 
                     b.HasIndex("Cpf")
                         .IsUnique();

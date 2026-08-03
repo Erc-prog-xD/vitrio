@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -5,9 +6,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.DTO;
+using BackendSystemVitrio.Enum;
 using BackendSystemVitrio.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace BackendSystemVitrio.Services.AuthService
 {
@@ -34,16 +37,27 @@ namespace BackendSystemVitrio.Services.AuthService
                     return null;
             }
 
-            if (normalizedCnpj is not null)
-            {
-                var cnpjExists = await _context.User.AnyAsync(u => u.Cnpj == normalizedCnpj);
-                if (cnpjExists)
-                    return null;
-            }
-
             var emailExists = await _context.User.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
                 return null;
+
+            var isShopkeeperWithStore = dto.Role == Role.Shopkeeper && !string.IsNullOrWhiteSpace(dto.StoreName);
+
+            if (isShopkeeperWithStore)
+            {
+                var storeNameExists = await _context.Store
+                    .AnyAsync(s => s.Name.ToLower() == dto.StoreName!.ToLower());
+
+                if (storeNameExists)
+                    return null;
+
+                if (normalizedCnpj is not null)
+                {
+                    var cnpjExists = await _context.Store.AnyAsync(s => s.Cnpj == normalizedCnpj);
+                    if (cnpjExists)
+                        return null;
+                }
+            }
 
             CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
 
@@ -52,26 +66,42 @@ namespace BackendSystemVitrio.Services.AuthService
                 Name = dto.Name,
                 Email = dto.Email,
                 Role = dto.Role,
-                StoreName = dto.StoreName,
                 Phone = dto.Phone,
                 Cpf = normalizedCpf,
-                Cnpj = normalizedCnpj,
                 PasswordHash = hash,
                 PasswordSalt = salt
             };
 
-            _context.User.Add(user);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                await _context.SaveChangesAsync();
+                _context.User.Add(user);
+                await _context.SaveChangesAsync(); // gera o Id do usuário, necessário pra Store.UserId
+
+                if (isShopkeeperWithStore)
+                {
+                    var store = new Store
+                    {
+                        Name = dto.StoreName!,
+                        Slug = Slugify(dto.StoreName!),
+                        Cnpj = normalizedCnpj,
+                        UserId = user.Id
+                    };
+
+                    _context.Store.Add(store);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             {
-                // Guarda contra a race condition: se dois requests chegarem ao
-                // mesmo tempo com o mesmo CPF/CNPJ/e-mail, os índices únicos do
-                // banco (configurados no AppDbContext) rejeitam o segundo insert
-                // mesmo que ambos tenham passado pelas checagens acima.
+                // Cobre a race condition: dois requests simultâneos com o mesmo
+                // CPF/e-mail/nome de loja/CNPJ podem passar pelas checagens acima
+                // antes de qualquer um salvar. Os índices únicos do banco pegam
+                // isso aqui (SqlState 23505 = unique_violation).
+                await transaction.RollbackAsync();
                 return null;
             }
 
@@ -82,8 +112,18 @@ namespace BackendSystemVitrio.Services.AuthService
         {
             var document = OnlyDigits(dto.Document);
 
-            var user = await _context.User
-                .FirstOrDefaultAsync(u => u.Cpf == document || u.Cnpj == document);
+            // Primeiro tenta como CPF (pessoa física, dono da conta).
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Cpf == document);
+
+            // Se não achou, tenta como CNPJ (agora mora na Store) e pega o dono dela.
+            if (user is null)
+            {
+                var store = await _context.Store
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Cnpj == document);
+
+                user = store?.User;
+            }
 
             if (user is null)
                 return null;
@@ -135,10 +175,7 @@ namespace BackendSystemVitrio.Services.AuthService
         }
 
         // Remove pontos, traços e barras (ex: "123.456.789-00" -> "12345678900").
-        // Retorna null (não string vazia) quando o valor não veio preenchido,
-        // para não conflitar com outros registros que também não têm o campo -
-        // o Postgres permite múltiplos NULL num índice único, mas não múltiplas
-        // strings vazias.
+        // Retorna null (não string vazia) quando o valor não veio preenchido.
         private static string? OnlyDigits(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -146,6 +183,21 @@ namespace BackendSystemVitrio.Services.AuthService
 
             var digits = Regex.Replace(value, @"\D", "");
             return digits.Length == 0 ? null : digits;
+        }
+
+        private static string Slugify(string value)
+        {
+            var normalized = value.Normalize(NormalizationForm.FormD);
+            var withoutAccents = new string(normalized
+                .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                .ToArray());
+
+            var slug = withoutAccents.ToLowerInvariant();
+            slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+            slug = Regex.Replace(slug, @"\s+", "-").Trim('-');
+            slug = Regex.Replace(slug, @"-+", "-");
+
+            return string.IsNullOrEmpty(slug) ? "loja" : slug;
         }
     }
 }
