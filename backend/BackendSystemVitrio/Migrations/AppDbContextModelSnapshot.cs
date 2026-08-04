@@ -82,8 +82,7 @@ namespace BackendSystemVitrio.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Store");
                 });
@@ -97,6 +96,7 @@ namespace BackendSystemVitrio.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Cpf")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreationDate")
@@ -141,8 +141,8 @@ namespace BackendSystemVitrio.Migrations
             modelBuilder.Entity("BackendSystemVitrio.Models.Store", b =>
                 {
                     b.HasOne("BackendSystemVitrio.Models.User", "User")
-                        .WithOne("Store")
-                        .HasForeignKey("BackendSystemVitrio.Models.Store", "UserId")
+                        .WithMany("Stores")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -151,7 +151,7 @@ namespace BackendSystemVitrio.Migrations
 
             modelBuilder.Entity("BackendSystemVitrio.Models.User", b =>
                 {
-                    b.Navigation("Store");
+                    b.Navigation("Stores");
                 });
 #pragma warning restore 612, 618
         }

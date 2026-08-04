@@ -4,13 +4,13 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
-import { formatDocument, isValidCpf, isValidCnpj } from "@/lib/validators";
+import { formatCpf, isValidCpf } from "@/lib/validators";
 import "./Auth.css";
 
 export default function Login() {
   const router = useRouter();
 
-  const [document, setDocument] = useState("");
+  const [cpf, setCpf] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,19 +19,16 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    const digits = document.replace(/\D/g, "");
-    const isValidDocument =
-      digits.length === 11 ? isValidCpf(document) : isValidCnpj(document);
-
-    if (!isValidDocument) {
-      setError("Informe um CPF ou CNPJ válido.");
+    // Login agora é só por CPF (CNPJ é dado da loja, não credencial de acesso).
+    if (!isValidCpf(cpf)) {
+      setError("Informe um CPF válido.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { dados } = await login({ document, password });
+      const { dados } = await login({ cpf, password });
       if (dados) {
         saveToken(dados.token);
         router.push("/");
@@ -54,14 +51,15 @@ export default function Login() {
         <p className="auth-subtitle">Acesse sua conta para continuar.</p>
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
-          <label htmlFor="document">CPF</label>
+          <label htmlFor="cpf">CPF</label>
           <input
-            id="document"
+            id="cpf"
             type="text"
             inputMode="numeric"
             placeholder="000.000.000-00"
-            value={document}
-            onChange={(e) => setDocument(formatDocument(e.target.value))}
+            value={cpf}
+            onChange={(e) => setCpf(formatCpf(e.target.value))}
+            maxLength={14}
             required
           />
 

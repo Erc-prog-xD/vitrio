@@ -21,7 +21,7 @@ namespace BackendSystemVitrio.Controllers
         {
             var user = await _authService.RegisterAsync(dto);
             if (user is null)
-                return BadRequest(Response<string>.Fail("Já existe uma conta com esse Email ou CPF/CNPJ."));
+                return BadRequest(Response<string>.Fail("CPF obrigatório, ou já existe uma conta com esse Email ou CPF."));
 
             var token = _authService.GenerateToken(user);
             var response = new AuthResponseDto { Token = token, ExpiresAt = DateTime.UtcNow.AddHours(8) };
@@ -34,7 +34,7 @@ namespace BackendSystemVitrio.Controllers
         {
             var user = await _authService.ValidateCredentialsAsync(dto);
             if (user is null)
-                return Unauthorized(Response<string>.Fail("CPF/CNPJ ou senha inválidos."));
+                return Unauthorized(Response<string>.Fail("CPF ou senha inválidos."));
 
             var token = _authService.GenerateToken(user);
             var response = new AuthResponseDto { Token = token, ExpiresAt = DateTime.UtcNow.AddHours(8) };

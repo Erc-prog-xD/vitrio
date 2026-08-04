@@ -16,12 +16,11 @@ namespace BackendSystemVitrio.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Postgres permite múltiplos NULL em índice único, então Cpf/Cnpj
-            // continuam opcionais sem conflitar entre si.
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
+            // CPF é a credencial de login agora: único e obrigatório.
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Cpf)
                 .IsUnique();
@@ -38,15 +37,14 @@ namespace BackendSystemVitrio.Data
                 .HasIndex(s => s.Slug)
                 .IsUnique();
 
-            // 1 usuário -> 1 loja, por enquanto
-            modelBuilder.Entity<Store>()
-                .HasIndex(s => s.UserId)
-                .IsUnique();
-
+            // Removido o índice único de UserId (antes limitava a 1 loja por
+            // usuário) e a relação passou de HasOne/WithOne para HasOne/WithMany,
+            // já que agora 1 usuário pode ter N lojas.
             modelBuilder.Entity<Store>()
                 .HasOne(s => s.User)
-                .WithOne(u => u.Store)
-                .HasForeignKey<Store>(s => s.UserId);
+                .WithMany(u => u.Stores)
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

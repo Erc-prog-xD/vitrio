@@ -47,7 +47,7 @@ export default function Register() {
         password,
         role: SHOPKEEPER_ROLE,
         phone: phone || undefined,
-        cpf: cpf.trim() || undefined
+        cpf: cpf.trim(), // já validado acima e agora é obrigatório na API
       });
 
       if (dados) {

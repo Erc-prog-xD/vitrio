@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using System.Text;
 using BackendSystemVitrio.Services.AuthService;
+using BackendSystemVitrio.Services.StoreService; // faltava esse: IStoreService/StoreService vivem aqui, não em Services.AuthService
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.Middlewares;
 
@@ -19,10 +20,34 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API do sistema Vitrio"
     });
+
+    // Sem isso o Swagger UI não mostra o botão "Authorize": ele não sabe
+    // que a API usa Bearer token, então não tem como anexar o JWT nas
+    // chamadas de rotas com [Authorize] (ex: StoreController).
+    var bearerScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Cole aqui o token retornado pelo login/registro. Não precisa digitar \"Bearer \" antes, o Swagger adiciona sozinho."
+    };
+
+    options.AddSecurityDefinition("Bearer", bearerScheme);
+
+    // Padrão do Swashbuckle 10 / Microsoft.OpenApi v2: a referência ao
+    // esquema precisa do próprio "document" (parâmetro da lambda), não
+    // só do Id como string solta.
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
 });
 
-// Registrar o AuthService
+// Registrar o AuthService e IStoreService
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IStoreService, StoreService>();
 
 // Configurar autenticação JWT
 builder.Services.AddAuthentication(options =>

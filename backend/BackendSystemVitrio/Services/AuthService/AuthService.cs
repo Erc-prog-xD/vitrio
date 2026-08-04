@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -6,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.DTO;
-using BackendSystemVitrio.Enum;
 using BackendSystemVitrio.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -27,21 +25,24 @@ namespace BackendSystemVitrio.Services.AuthService
 
         public async Task<User?> RegisterAsync(RegisterDto dto)
         {
+            // CPF é a credencial de login: sem ele o usuário nunca conseguiria
+            // entrar depois. Antes era opcional, o que deixava contas "órfãs".
             var normalizedCpf = OnlyDigits(dto.Cpf);
+            if (normalizedCpf is null)
+                return null;
 
-            if (normalizedCpf is not null)
-            {
-                var cpfExists = await _context.User.AnyAsync(u => u.Cpf == normalizedCpf);
-                if (cpfExists)
-                    return null;
-            }
+            var cpfExists = await _context.User.AnyAsync(u => u.Cpf == normalizedCpf);
+            if (cpfExists)
+                return null;
 
             var emailExists = await _context.User.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
                 return null;
 
-            var isShopkeeperWithStore = dto.Role == Role.Shopkeeper && !string.IsNullOrWhiteSpace(dto.StoreName);
-
+            // Removido: "isShopkeeperWithStore" não era usado em nenhum lugar
+            // (sobrou de quando a loja era criada junto com o cadastro).
+            // Agora o cadastro só cria o usuário; a loja é criada depois,
+            // já autenticado, via StoreController.
 
             CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
 
@@ -61,16 +62,16 @@ namespace BackendSystemVitrio.Services.AuthService
             try
             {
                 _context.User.Add(user);
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
             }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             {
                 // Cobre a race condition: dois requests simultâneos com o mesmo
-                // CPF/e-mail/nome de loja/CNPJ podem passar pelas checagens acima
-                // antes de qualquer um salvar. Os índices únicos do banco pegam
-                // isso aqui (SqlState 23505 = unique_violation).
+                // CPF/e-mail podem passar pelas checagens acima antes de qualquer
+                // um salvar. Os índices únicos do banco pegam isso aqui
+                // (SqlState 23505 = unique_violation).
                 await transaction.RollbackAsync();
                 return null;
             }
@@ -80,10 +81,16 @@ namespace BackendSystemVitrio.Services.AuthService
 
         public async Task<User?> ValidateCredentialsAsync(LoginDto dto)
         {
-            var document = OnlyDigits(dto.Document);
+            var cpf = OnlyDigits(dto.Cpf);
 
-            // Primeiro tenta como CPF (pessoa física, dono da conta).
-            var user = await _context.User.FirstOrDefaultAsync(u => u.Cpf == document);
+            // Sem essa checagem, um CPF vazio virava "WHERE Cpf IS NULL" na
+            // consulta abaixo, o que podia autenticar contra qualquer usuário
+            // sem CPF cadastrado. Como CPF agora é obrigatório no cadastro,
+            // isso só protege contra requests malformados.
+            if (cpf is null)
+                return null;
+
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Cpf == cpf);
 
             if (user is null)
                 return null;

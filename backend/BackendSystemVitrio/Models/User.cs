@@ -9,7 +9,11 @@ namespace BackendSystemVitrio.Models
         public required string Email { get; set; }
 
         public string? Phone { get; set; }
-        public string? Cpf { get; set; }
+
+        // CPF agora é a única credencial usada no login, por isso é obrigatório
+        // (antes era opcional, o que quebrava o login e abria brecha de segurança
+        // quando dois usuários ficavam com Cpf nulo).
+        public required string Cpf { get; set; }
 
         public required Role Role { get; set; }
 
@@ -19,7 +23,7 @@ namespace BackendSystemVitrio.Models
         public DateTime CreationDate { get; set; } = DateTime.UtcNow;
         public DateTime? DeletionDate { get; set; } = null;
 
-        // Um lojista tem uma loja; cliente e admin não têm.
-        public Store? Store { get; set; }
+        // Um usuário pode ter várias lojas (antes era Store? Store, 1 para 1).
+        public ICollection<Store> Stores { get; set; } = new List<Store>();
     }
 }

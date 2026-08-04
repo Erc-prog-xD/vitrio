@@ -18,11 +18,11 @@ export interface RegisterPayload {
   password: string;
   role: Role;
   phone?: string;
-  cpf?: string;
+  cpf: string; // agora obrigatório: é a credencial de login
 }
 
 export interface LoginPayload {
-  document: string; // CPF 
+  cpf: string; // login não aceita mais CNPJ, só CPF
   password: string;
 }
 
@@ -31,28 +31,32 @@ export interface AuthResponse {
   expiresAt: string;
 }
 
-async function request<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
-  const res = await fetch(`${API_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data: ApiResponse<T> = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.mensagem ?? "Erro ao processar a solicitação.");
-  }
-
-  return data;
+export interface Store {
+  id: number;
+  name: string;
+  slug: string;
+  cnpj: string | null;
+  description: string | null;
+  logoUrl: string | null;
+  primaryColor: string;
+  secondaryColor: string;
+  tertiaryColor: string;
+  isActive: boolean;
+  creationDate: string;
 }
 
-export function register(payload: RegisterPayload) {
-  return request<AuthResponse>("/api/Auth/register", payload);
+export interface CreateStorePayload {
+  name: string;
+  cnpj?: string;
+  description?: string;
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  tertiaryColor?: string;
 }
 
-export function login(payload: LoginPayload) {
-  return request<AuthResponse>("/api/Auth/login", payload);
+export interface UpdateStorePayload extends Partial<CreateStorePayload> {
+  isActive?: boolean;
 }
 
 const TOKEN_KEY = "vitrio_token";
@@ -68,4 +72,67 @@ export function getToken(): string | null {
 
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
+}
+
+async function request<T>(
+  path: string,
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  body?: unknown,
+  auth = false
+): Promise<ApiResponse<T>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  if (auth) {
+    const token = getToken();
+    if (!token) throw new Error("Sessão expirada. Faça login novamente.");
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  // 204 No Content ou corpo vazio não tem JSON pra parsear.
+  const data: ApiResponse<T> =
+    res.status === 204 ? { dados: null, mensagem: null, status: res.ok } : await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.mensagem ?? "Erro ao processar a solicitação.");
+  }
+
+  return data;
+}
+
+// ===== Auth =====
+
+export function register(payload: RegisterPayload) {
+  return request<AuthResponse>("/api/Auth/register", "POST", payload);
+}
+
+export function login(payload: LoginPayload) {
+  return request<AuthResponse>("/api/Auth/login", "POST", payload);
+}
+
+// ===== Store (rotas autenticadas) =====
+
+export function getMyStores() {
+  return request<Store[]>("/api/Store", "GET", undefined, true);
+}
+
+export function getStoreById(id: number) {
+  return request<Store>(`/api/Store/${id}`, "GET", undefined, true);
+}
+
+export function createStore(payload: CreateStorePayload) {
+  return request<Store>("/api/Store", "POST", payload, true);
+}
+
+export function updateStore(id: number, payload: UpdateStorePayload) {
+  return request<Store>(`/api/Store/${id}`, "PUT", payload, true);
+}
+
+export function deleteStore(id: number) {
+  return request<string>(`/api/Store/${id}`, "DELETE", undefined, true);
 }

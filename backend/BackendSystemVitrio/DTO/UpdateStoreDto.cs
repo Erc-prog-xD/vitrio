@@ -1,0 +1,16 @@
+namespace BackendSystemVitrio.DTO
+{
+    public class UpdateStoreDto
+    {
+        public string? Name { get; set; }
+        public string? Cnpj { get; set; }
+        public string? Description { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? PrimaryColor { get; set; }
+        public string? SecondaryColor { get; set; }
+        public string? TertiaryColor { get; set; }
+
+        // Permite ativar/pausar a loja (soft toggle, não deleção).
+        public bool? IsActive { get; set; }
+    }
+}

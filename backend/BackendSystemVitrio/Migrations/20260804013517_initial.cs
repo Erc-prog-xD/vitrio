@@ -7,14 +7,31 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendSystemVitrio.Migrations
 {
     /// <inheritdoc />
-    public partial class AddStoreEntity : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "StoreName",
-                table: "User");
+            migrationBuilder.CreateTable(
+                name: "User",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: true),
+                    Cpf = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<int>(type: "integer", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
+                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_User", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Store",
@@ -24,6 +41,7 @@ namespace BackendSystemVitrio.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Slug = table.Column<string>(type: "text", nullable: false),
+                    Cnpj = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
                     LogoUrl = table.Column<string>(type: "text", nullable: true),
                     PrimaryColor = table.Column<string>(type: "text", nullable: false),
@@ -31,6 +49,7 @@ namespace BackendSystemVitrio.Migrations
                     TertiaryColor = table.Column<string>(type: "text", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -45,21 +64,9 @@ namespace BackendSystemVitrio.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_User_Cnpj",
-                table: "User",
+                name: "IX_Store_Cnpj",
+                table: "Store",
                 column: "Cnpj",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_User_Cpf",
-                table: "User",
-                column: "Cpf",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_User_Email",
-                table: "User",
-                column: "Email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -77,7 +84,18 @@ namespace BackendSystemVitrio.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Store_UserId",
                 table: "Store",
-                column: "UserId",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Cpf",
+                table: "User",
+                column: "Cpf",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Email",
+                table: "User",
+                column: "Email",
                 unique: true);
         }
 
@@ -87,23 +105,8 @@ namespace BackendSystemVitrio.Migrations
             migrationBuilder.DropTable(
                 name: "Store");
 
-            migrationBuilder.DropIndex(
-                name: "IX_User_Cnpj",
-                table: "User");
-
-            migrationBuilder.DropIndex(
-                name: "IX_User_Cpf",
-                table: "User");
-
-            migrationBuilder.DropIndex(
-                name: "IX_User_Email",
-                table: "User");
-
-            migrationBuilder.AddColumn<string>(
-                name: "StoreName",
-                table: "User",
-                type: "text",
-                nullable: true);
+            migrationBuilder.DropTable(
+                name: "User");
         }
     }
 }

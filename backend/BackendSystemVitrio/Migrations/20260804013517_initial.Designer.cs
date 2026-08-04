@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendSystemVitrio.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260803012624_ajust")]
-    partial class ajust
+    [Migration("20260804013517_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,9 @@ namespace BackendSystemVitrio.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cnpj")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -73,14 +76,16 @@ namespace BackendSystemVitrio.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Cnpj")
+                        .IsUnique();
+
                     b.HasIndex("Name")
                         .IsUnique();
 
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Store");
                 });
@@ -93,10 +98,8 @@ namespace BackendSystemVitrio.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Cnpj")
-                        .HasColumnType("text");
-
                     b.Property<string>("Cpf")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreationDate")
@@ -129,9 +132,6 @@ namespace BackendSystemVitrio.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Cnpj")
-                        .IsUnique();
-
                     b.HasIndex("Cpf")
                         .IsUnique();
 
@@ -144,8 +144,8 @@ namespace BackendSystemVitrio.Migrations
             modelBuilder.Entity("BackendSystemVitrio.Models.Store", b =>
                 {
                     b.HasOne("BackendSystemVitrio.Models.User", "User")
-                        .WithOne("Store")
-                        .HasForeignKey("BackendSystemVitrio.Models.Store", "UserId")
+                        .WithMany("Stores")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -154,7 +154,7 @@ namespace BackendSystemVitrio.Migrations
 
             modelBuilder.Entity("BackendSystemVitrio.Models.User", b =>
                 {
-                    b.Navigation("Store");
+                    b.Navigation("Stores");
                 });
 #pragma warning restore 612, 618
         }
