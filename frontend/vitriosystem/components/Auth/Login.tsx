@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
 import { formatCpf, isValidCpf } from "@/lib/validators";
+import { useAuth } from "@/lib/auth_context";
 import "./Auth.css";
 
 export default function Login() {
   const router = useRouter();
+  const { refresh } = useAuth();
 
   const [cpf, setCpf] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +33,10 @@ export default function Login() {
       const { dados } = await login({ cpf, password });
       if (dados) {
         saveToken(dados.token);
-        router.push("/");
+
+        await refresh();
+
+        router.replace("/initialpage");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao entrar.");

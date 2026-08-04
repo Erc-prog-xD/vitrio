@@ -1,3 +1,5 @@
+"use client";
+
 import "./SidebarInitialPage.css";
 import {
     LayoutDashboard,
@@ -9,9 +11,11 @@ import {
     CircleHelp,
     LogOut
 } from "lucide-react";
-
+import { useAuth } from "@/lib/auth_context";
 
 export default function SidebarInitialPage() {
+    const { logout } = useAuth();
+
     return (
             <aside className="sidebar">
 
@@ -58,9 +62,9 @@ export default function SidebarInitialPage() {
 
                 </nav>
 
-                <button className="logoutButton">
+                <button className="logoutButton" onClick={logout}>
                     <LogOut size={18} />
-                    Sair
+                    <span>Sair</span>
                 </button>
 
             </aside>

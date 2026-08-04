@@ -25,8 +25,6 @@ namespace BackendSystemVitrio.Services.AuthService
 
         public async Task<User?> RegisterAsync(RegisterDto dto)
         {
-            // CPF é a credencial de login: sem ele o usuário nunca conseguiria
-            // entrar depois. Antes era opcional, o que deixava contas "órfãs".
             var normalizedCpf = OnlyDigits(dto.Cpf);
             if (normalizedCpf is null)
                 return null;
@@ -38,11 +36,6 @@ namespace BackendSystemVitrio.Services.AuthService
             var emailExists = await _context.User.AnyAsync(u => u.Email == dto.Email);
             if (emailExists)
                 return null;
-
-            // Removido: "isShopkeeperWithStore" não era usado em nenhum lugar
-            // (sobrou de quando a loja era criada junto com o cadastro).
-            // Agora o cadastro só cria o usuário; a loja é criada depois,
-            // já autenticado, via StoreController.
 
             CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
 
@@ -68,10 +61,6 @@ namespace BackendSystemVitrio.Services.AuthService
             }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             {
-                // Cobre a race condition: dois requests simultâneos com o mesmo
-                // CPF/e-mail podem passar pelas checagens acima antes de qualquer
-                // um salvar. Os índices únicos do banco pegam isso aqui
-                // (SqlState 23505 = unique_violation).
                 await transaction.RollbackAsync();
                 return null;
             }
@@ -83,10 +72,6 @@ namespace BackendSystemVitrio.Services.AuthService
         {
             var cpf = OnlyDigits(dto.Cpf);
 
-            // Sem essa checagem, um CPF vazio virava "WHERE Cpf IS NULL" na
-            // consulta abaixo, o que podia autenticar contra qualquer usuário
-            // sem CPF cadastrado. Como CPF agora é obrigatório no cadastro,
-            // isso só protege contra requests malformados.
             if (cpf is null)
                 return null;
 
@@ -99,6 +84,15 @@ namespace BackendSystemVitrio.Services.AuthService
                 return null;
 
             return user;
+        }
+
+        // Usado pelo GET /api/Auth/me: busca o usuário direto do banco a
+        // partir do Id que veio no claim do token, em vez de confiar só no
+        // que está decodificado no JWT (que pode estar desatualizado se o
+        // usuário editou o perfil depois de logar).
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _context.User.FirstOrDefaultAsync(u => u.Id == id && u.DeletionDate == null);
         }
 
         public string GenerateToken(User user)
@@ -141,8 +135,6 @@ namespace BackendSystemVitrio.Services.AuthService
             return computedHash.SequenceEqual(hash);
         }
 
-        // Remove pontos, traços e barras (ex: "123.456.789-00" -> "12345678900").
-        // Retorna null (não string vazia) quando o valor não veio preenchido.
         private static string? OnlyDigits(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))

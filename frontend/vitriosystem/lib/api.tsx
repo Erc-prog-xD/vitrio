@@ -31,6 +31,15 @@ export interface AuthResponse {
   expiresAt: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  cpf: string;
+  role: string;
+}
+
 export interface Store {
   id: number;
   name: string;
@@ -98,6 +107,12 @@ async function request<T>(
   const data: ApiResponse<T> =
     res.status === 204 ? { dados: null, mensagem: null, status: res.ok } : await res.json();
 
+  if (res.status === 401 && auth && typeof window !== "undefined") {
+    // Token expirou ou foi invalidado no meio da sessão (não só no load
+    // inicial). O AuthProvider escuta esse evento e desloga automaticamente.
+    window.dispatchEvent(new Event("auth:unauthorized"));
+  }
+
   if (!res.ok) {
     throw new Error(data.mensagem ?? "Erro ao processar a solicitação.");
   }
@@ -113,6 +128,12 @@ export function register(payload: RegisterPayload) {
 
 export function login(payload: LoginPayload) {
   return request<AuthResponse>("/api/Auth/login", "POST", payload);
+}
+
+// ===== Usuário logado (rota autenticada) =====
+
+export function getMe() {
+  return request<User>("/api/Auth/me", "GET", undefined, true);
 }
 
 // ===== Store (rotas autenticadas) =====

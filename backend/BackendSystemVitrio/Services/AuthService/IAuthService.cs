@@ -3,10 +3,14 @@ using BackendSystemVitrio.Models;
 
 namespace BackendSystemVitrio.Services.AuthService
 {
+    // Reconstruí este contrato com base no que AuthService/AuthController usam
+    // (o arquivo original não foi enviado). Só adicione o método GetByIdAsync
+    // ao seu IAuthService.cs real se os outros já baterem certinho.
     public interface IAuthService
     {
         Task<User?> RegisterAsync(RegisterDto dto);
         Task<User?> ValidateCredentialsAsync(LoginDto dto);
+        Task<User?> GetByIdAsync(int id); // novo: usado pelo GET /api/Auth/me
         string GenerateToken(User user);
     }
 }
