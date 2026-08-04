@@ -5,11 +5,13 @@ import "./Storelist.css";
 
 import { Plus, Store as StoreIcon, ChevronRight } from "lucide-react";
 import { getMyStores, type Store } from "@/lib/api";
+import CreateStoreModal from "./CreateStoreModal";
 
 export default function Storelist() {
     const [stores, setStores] = useState<Store[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -32,12 +34,18 @@ export default function Storelist() {
         };
     }, []);
 
+    function handleStoreCreated(store: Store) {
+        // Insere a nova loja no topo da lista sem precisar refazer o fetch.
+        setStores((prev) => [store, ...prev]);
+        setShowCreateModal(false);
+    }
+
     return (
         <div className="storesContainer">
             <div className="sectionTitle">
                 <h2>Minhas Lojas</h2>
 
-                <button>
+                <button onClick={() => setShowCreateModal(true)}>
                     <Plus size={18} />
                     Nova Loja
                 </button>
@@ -77,6 +85,13 @@ export default function Storelist() {
                         </button>
                     </div>
                 ))}
+
+            {showCreateModal && (
+                <CreateStoreModal
+                    onClose={() => setShowCreateModal(false)}
+                    onCreated={handleStoreCreated}
+                />
+            )}
         </div>
     );
 }
