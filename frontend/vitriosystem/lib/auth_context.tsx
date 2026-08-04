@@ -101,3 +101,16 @@ export function useRequireAuth() {
 
   return { user, loading };
 }
+
+export function useGuestOnly() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/initialpage");
+    }
+  }, [loading, user, router]);
+
+  return { loading };
+}

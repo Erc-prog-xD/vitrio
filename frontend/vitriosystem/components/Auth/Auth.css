@@ -77,6 +77,7 @@
 
 .auth-form .btn-primary {
     background-color: var(--botton-enter);
+    color: white;
     margin-top: 20px;
     width: 100%;
     padding: 14px;
@@ -84,6 +85,7 @@
     border-radius: 10px;
     border: none;
     cursor: pointer;
+    font-weight: bold;
 }
 
 .auth-form .btn-primary:hover {
@@ -94,7 +96,6 @@
     font-size: 16px;
     border-radius: 10px;
     border: none;
-    cursor: pointer;
 }
 
 .auth-form .btn-primary:disabled {

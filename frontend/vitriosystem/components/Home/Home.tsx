@@ -1,7 +1,15 @@
+"use client";
 import Link from "next/link";
 import "./Home.css";
+import { useGuestOnly } from "@/lib/auth_context";
+
 
 export default function Home() {
+
+  const {loading:guestOnlyLoading} = useGuestOnly();
+  
+  if (guestOnlyLoading) return null;
+  
   return (
     <div className="home">
 

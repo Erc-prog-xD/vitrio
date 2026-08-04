@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { register, saveToken, SHOPKEEPER_ROLE } from "@/lib/api";
 import { formatCpf, isValidCpf, formatPhone, isValidPhone } from "@/lib/validators";
 import "./Auth.css";
+import { useGuestOnly } from "@/lib/auth_context";
 
 export default function Register() {
   const router = useRouter();
@@ -17,7 +18,8 @@ export default function Register() {
   const [cpf, setCpf] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const {loading:guestOnlyLoading} = useGuestOnly();
+  
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -51,7 +53,6 @@ export default function Register() {
       });
 
       if (dados) {
-        saveToken(dados.token);
         router.push("/");
       }
     } catch (err) {
@@ -60,6 +61,8 @@ export default function Register() {
       setLoading(false);
     }
   }
+
+  if (guestOnlyLoading) return null;
 
   return (
     <div className="auth-page">

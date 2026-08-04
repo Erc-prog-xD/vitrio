@@ -43,6 +43,7 @@
     color: #4b5563;
     font-weight: 500;
     transition: .25s;
+    cursor: pointer;
 }
 
 .sidebar nav a:hover {

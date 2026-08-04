@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
 import { formatCpf, isValidCpf } from "@/lib/validators";
-import { useAuth } from "@/lib/auth_context";
+import { useAuth, useGuestOnly} from "@/lib/auth_context";
 import "./Auth.css";
 
 export default function Login() {
@@ -16,7 +16,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const {loading:guestOnlyLoading} = useGuestOnly();
 
+
+  
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -44,6 +47,9 @@ export default function Login() {
       setLoading(false);
     }
   }
+
+  if (guestOnlyLoading) return null;
+
 
   return (
     <div className="auth-page">
