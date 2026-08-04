@@ -1,6 +1,6 @@
 "use client";
 
-import "./Initialpage.css";
+import styles from "./Initialpage.module.css";
 
 import SidebarInitialPage from "./Sidebar/SidebarInitialPage";
 import Header from "./Header/Header";
@@ -14,7 +14,7 @@ export default function Initial() {
     // dashboard antes de saber se a pessoa está mesmo logada.
     if (loading) {
         return (
-            <div className="dashboard">
+            <div className={styles.dashboard}>
                 <p style={{ padding: 40 }}>Carregando...</p>
             </div>
         );
@@ -29,21 +29,21 @@ export default function Initial() {
     const firstName = user.name.split(" ")[0];
 
     return (
-        <div className="dashboard">
+        <div className={styles.dashboard}>
 
             <SidebarInitialPage />
 
             {/* MAIN */}
 
-            <main className="content">
+            <main className={styles.content}>
 
                 <Header />
 
                 {/* BODY */}
 
-                <section className="body">
+                <section className={styles.body}>
 
-                    <div className="welcome">
+                    <div className={styles.welcome}>
 
                         <h1>
                             Bem-vindo, {firstName} 👋

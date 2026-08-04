@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { register, saveToken, SHOPKEEPER_ROLE } from "@/lib/api";
 import { formatCpf, isValidCpf, formatPhone, isValidPhone } from "@/lib/validators";
-import "./Auth.css";
+import styles from "./Auth.module.css";
 import { useGuestOnly } from "@/lib/auth_context";
 
 export default function Register() {
@@ -65,18 +65,18 @@ export default function Register() {
   if (guestOnlyLoading) return null;
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <Link href="/" className="auth-logo">
+    <div className={styles.authPage}>
+      <div className={styles.authCard}>
+        <Link href="/" className={styles.authLogo}>
           <h2>Vitrio System</h2>
         </Link>
 
         <h1>Criar sua Conta</h1>
-        <p className="auth-subtitle">
+        <p className={styles.authSubtitle}>
           Cadastre-se para começar a usar o Vitrio System.
         </p>
 
-        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        <form onSubmit={handleSubmit} className={styles.authForm} noValidate>
           <label htmlFor="name">Seu nome</label>
           <input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
 
@@ -119,14 +119,14 @@ export default function Register() {
             maxLength={14}
           />
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className={styles.authError}>{error}</p>}
 
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" className={styles.btnPrimary} disabled={loading}>
             {loading ? "Criando..." : "Criar conta"}
           </button>
         </form>
 
-        <p className="auth-switch">
+        <p className={styles.authSwitch}>
           Já tem uma conta? <Link href="/login">Entrar</Link>
         </p>
       </div>

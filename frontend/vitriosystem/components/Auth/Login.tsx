@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
 import { formatCpf, isValidCpf } from "@/lib/validators";
 import { useAuth, useGuestOnly} from "@/lib/auth_context";
-import "./Auth.css";
+import styles from "./Auth.module.css";
 
 export default function Login() {
   const router = useRouter();
@@ -52,16 +52,16 @@ export default function Login() {
 
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <Link href="/" className="auth-logo">
+    <div className={styles.authPage}>
+      <div className={styles.authCard}>
+        <Link href="/" className={styles.authLogo}>
           <h2>Vitrio System</h2>
         </Link>
 
         <h1>Entrar</h1>
-        <p className="auth-subtitle">Acesse sua conta para continuar.</p>
+        <p className={styles.authSubtitle}>Acesse sua conta para continuar.</p>
 
-        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        <form onSubmit={handleSubmit} className={styles.authForm} noValidate>
           <label htmlFor="cpf">CPF</label>
           <input
             id="cpf"
@@ -83,14 +83,14 @@ export default function Login() {
             required
           />
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <p className={styles.authError}>{error}</p>}
 
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" className={styles.btnPrimary} disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
 
-        <p className="auth-switch">
+        <p className={styles.authSwitch}>
           Não tem uma conta? <Link href="/register">Criar conta</Link>
         </p>
       </div>

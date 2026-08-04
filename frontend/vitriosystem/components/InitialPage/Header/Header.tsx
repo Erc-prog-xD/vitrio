@@ -1,6 +1,6 @@
 "use client";
 
-import "./Header.css";
+import styles from "./Header.module.css";
 import { Search, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth_context";
 
@@ -23,19 +23,19 @@ export default function Header() {
   const { user } = useAuth();
 
   return (
-    <header className="header">
-      <div className="searchBar">
+    <header className={styles.header}>
+      <div className={styles.searchBar}>
         <Search size={18} />
         <input placeholder="Pesquisar..." />
       </div>
 
-      <div className="headerRight">
-        <button className="notification">
+      <div className={styles.headerRight}>
+        <button className={styles.notification}>
           <Bell size={18} />
         </button>
 
-        <div className="profile">
-          <div className="avatar">{user ? getInitials(user.name) : "…"}</div>
+        <div className={styles.profile}>
+          <div className={styles.avatar}>{user ? getInitials(user.name) : "…"}</div>
 
           <div>
             <strong>{user?.name ?? "Carregando..."}</strong>

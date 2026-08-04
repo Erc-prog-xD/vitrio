@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import "./Home.css";
+import styles from "./Home.module.css";
 import { useGuestOnly } from "@/lib/auth_context";
 
 
@@ -13,20 +13,20 @@ export default function Home() {
   return (
     <div className="home">
 
-      <header className="navbar">
-        <div className="logo">
+      <header className={styles.navbar}>
+        <div className={styles.logo}>
           <h2>Vitrio System</h2>
         </div>
 
-        <nav>
-          <Link href="/login" className="btn-login">Login</Link>
-          <Link href="/register" className="btn-register">Criar Conta</Link>
+        <nav className={styles.nav}>
+          <Link href="/login" className={styles.btnLogin}>Login</Link>
+          <Link href="/register" className={styles.btnRegister}>Criar Conta</Link>
         </nav>
       </header>
 
-      <section className="hero">
+      <section className={styles.hero}>
 
-        <div className="hero-text">
+        <div className={styles.heroText}>
 
           <h1>Crie e gerencie sua loja de forma simples.</h1>
 
@@ -36,13 +36,13 @@ export default function Home() {
             rápido e seguro.
           </p>
 
-          <Link href="/register" className="btn-primary">
+          <Link href="/register" className={styles.btnPrimary}>
             Começar Agora
           </Link>
 
         </div>
 
-        <div className="hero-image">
+        <div className={styles.heroImage}>
 
           <img
             src="https://placehold.co/650x450"
@@ -53,9 +53,9 @@ export default function Home() {
 
       </section>
 
-      <section className="features">
+      <section className={styles.features}>
 
-        <div className="card">
+        <div className={styles.card}>
           <h3>📦 Produtos</h3>
 
           <p>
@@ -65,7 +65,7 @@ export default function Home() {
 
         </div>
 
-        <div className="card">
+        <div className={styles.card}>
 
           <h3>🧾 Pedidos</h3>
 
@@ -76,7 +76,7 @@ export default function Home() {
 
         </div>
 
-        <div className="card">
+        <div className={styles.card}>
 
           <h3>👥 Clientes</h3>
 
@@ -89,7 +89,7 @@ export default function Home() {
 
       </section>
 
-      <footer className="footer">
+      <footer className={styles.footer}>
 
         <div>
 

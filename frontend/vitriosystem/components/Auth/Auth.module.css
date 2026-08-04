@@ -1,5 +1,4 @@
-
-.auth-page {
+.authPage {
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -8,7 +7,7 @@
     padding: 40px 20px;
 }
 
-.auth-card {
+.authCard {
     width: 100%;
     max-width: 420px;
     background: white;
@@ -17,40 +16,40 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
 }
 
-.auth-logo {
+.authLogo {
     display: inline-block;
     text-decoration: none;
     margin-bottom: 30px;
 }
 
-.auth-logo h2 {
+.authLogo h2 {
     color: var(--botton-enter);
 }
 
-.auth-card h1 {
+.authCard h1 {
     font-size: 28px;
     color: #111827;
     margin-bottom: 8px;
 }
 
-.auth-subtitle {
+.authSubtitle {
     color: #555;
     margin-bottom: 25px;
 }
 
-.auth-form {
+.authForm {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.auth-form label {
+.authForm label {
     font-size: 14px;
     color: #111827;
     margin-top: 12px;
 }
 
-.auth-form input {
+.authForm input {
     padding: 12px 14px;
     border: 1.5px solid #cbd5e1;
     border-radius: 8px;
@@ -60,22 +59,22 @@
     color: #111827;
 }
 
-.auth-form input::placeholder {
+.authForm input::placeholder {
     color: #9ca3af;
 }
 
-.auth-form input:focus {
+.authForm input:focus {
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.auth-error {
+.authError {
     color: #dc2626;
     font-size: 14px;
     margin-top: 10px;
 }
 
-.auth-form .btn-primary {
+.btnPrimary {
     background-color: var(--botton-enter);
     color: white;
     margin-top: 20px;
@@ -88,29 +87,23 @@
     font-weight: bold;
 }
 
-.auth-form .btn-primary:hover {
+.btnPrimary:hover {
     background-color: var(--botton-enter-hover);
-    margin-top: 20px;
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: none;
 }
 
-.auth-form .btn-primary:disabled {
+.btnPrimary:disabled {
     opacity: .6;
     cursor: not-allowed;
 }
 
-.auth-switch {
+.authSwitch {
     margin-top: 25px;
     text-align: center;
     color: #555;
     font-size: 14px;
 }
 
-.auth-switch a {
+.authSwitch a {
     color: var(--botton-enter);
     font-weight: bold;
     text-decoration: none;

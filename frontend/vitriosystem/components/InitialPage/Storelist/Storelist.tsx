@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "./Storelist.css";
+import styles from "./Storelist.module.css";
 
 import { Plus, Store as StoreIcon, ChevronRight } from "lucide-react";
 import { getMyStores, type Store } from "@/lib/api";
@@ -41,8 +41,8 @@ export default function Storelist() {
     }
 
     return (
-        <div className="storesContainer">
-            <div className="sectionTitle">
+        <div className={styles.storesContainer}>
+            <div className={styles.sectionTitle}>
                 <h2>Minhas Lojas</h2>
 
                 <button onClick={() => setShowCreateModal(true)}>
@@ -51,9 +51,11 @@ export default function Storelist() {
                 </button>
             </div>
 
+            {/* "text-muted" e "error-text" são utilitários globais (globals.css),
+                por isso usam className como string simples, não styles.* */}
             {loading && <p className="text-muted">Carregando lojas...</p>}
 
-            {!loading && error && <p className="auth-error">{error}</p>}
+            {!loading && error && <p className="error-text">{error}</p>}
 
             {!loading && !error && stores.length === 0 && (
                 <p className="text-muted">
@@ -64,22 +66,22 @@ export default function Storelist() {
             {!loading &&
                 !error &&
                 stores.map((store) => (
-                    <div key={store.id} className="storeCard">
-                        <div className="storeLeft">
-                            <div className="storeIcon">
+                    <div key={store.id} className={styles.storeCard}>
+                        <div className={styles.storeLeft}>
+                            <div className={styles.storeIcon}>
                                 <StoreIcon size={24} />
                             </div>
 
                             <div>
                                 <h3>{store.name}</h3>
                                 <p>{store.slug}.vitrio.com</p>
-                                <span className="status">
+                                <span className={styles.status}>
                                     ● {store.isActive ? "Ativa" : "Pausada"}
                                 </span>
                             </div>
                         </div>
 
-                        <button className="manageButton">
+                        <button className={styles.manageButton}>
                             Gerenciar
                             <ChevronRight size={18} />
                         </button>

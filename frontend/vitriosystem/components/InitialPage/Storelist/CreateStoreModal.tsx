@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import { X, Store as StoreIcon } from "lucide-react";
 import { createStore, type Store, type CreateStorePayload } from "@/lib/api";
 import { formatCnpj, isValidCnpj } from "@/lib/validators";
-import "./CreateStoreModal.css";
+import styles from "./CreateStoreModal.module.css";
 
 interface CreateStoreModalProps {
   onClose: () => void;
@@ -69,26 +69,26 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
   }
 
   return (
-    <div className="modalOverlay" onClick={onClose}>
-      <div className="modalCard" onClick={(e) => e.stopPropagation()}>
-        <div className="modalHeader">
-          <div className="modalTitle">
-            <div className="modalIcon">
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <div className={styles.modalTitle}>
+            <div className={styles.modalIcon}>
               <StoreIcon size={20} />
             </div>
             <h2>Nova Loja</h2>
           </div>
 
-          <button type="button" className="closeButton" onClick={onClose} aria-label="Fechar">
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Fechar">
             <X size={20} />
           </button>
         </div>
 
-        <p className="modalSubtitle">
+        <p className={styles.modalSubtitle}>
           Preencha os dados abaixo para criar sua loja. Você pode ajustar tudo isso depois.
         </p>
 
-        <form onSubmit={handleSubmit} className="modalForm" noValidate>
+        <form onSubmit={handleSubmit} className={styles.modalForm} noValidate>
           <label htmlFor="storeName">Nome da loja *</label>
           <input
             id="storeName"
@@ -125,8 +125,8 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
             placeholder="https://..."
           />
 
-          <div className="colorRow">
-            <div className="colorField">
+          <div className={styles.colorRow}>
+            <div className={styles.colorField}>
               <label htmlFor="primaryColor">Cor primária</label>
               <input
                 id="primaryColor"
@@ -136,7 +136,7 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
               />
             </div>
 
-            <div className="colorField">
+            <div className={styles.colorField}>
               <label htmlFor="secondaryColor">Cor secundária</label>
               <input
                 id="secondaryColor"
@@ -146,7 +146,7 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
               />
             </div>
 
-            <div className="colorField">
+            <div className={styles.colorField}>
               <label htmlFor="tertiaryColor">Cor terciária</label>
               <input
                 id="tertiaryColor"
@@ -157,14 +157,14 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
             </div>
           </div>
 
-          {error && <p className="modalError">{error}</p>}
+          {error && <p className={styles.modalError}>{error}</p>}
 
-          <div className="modalActions">
-            <button type="button" className="cancelButton" onClick={onClose} disabled={loading}>
+          <div className={styles.modalActions}>
+            <button type="button" className={styles.cancelButton} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
 
-            <button type="submit" className="submitButton" disabled={loading}>
+            <button type="submit" className={styles.submitButton} disabled={loading}>
               {loading ? "Criando..." : "Criar loja"}
             </button>
           </div>

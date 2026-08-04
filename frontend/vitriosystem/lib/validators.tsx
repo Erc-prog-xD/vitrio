@@ -20,10 +20,18 @@ export function formatCnpj(value: string): string {
 }
 
 // Enquanto digita, se tiver até 11 dígitos formata como CPF;
-// a partir do 12º dígito, passa a formatar como CNPJ. Usado no login,
-// onde o mesmo campo aceita os dois documentos.
+// a partir do 12º dígito, passa a formatar como CNPJ. Usado em campos
+// onde o mesmo input aceita os dois documentos.
+//
+// Atenção: como o CPF (11 dígitos) é um prefixo válido do CNPJ (14 dígitos),
+// não dá pra saber com certeza qual documento é enquanto a pessoa ainda
+// está digitando os primeiros dígitos — por isso o corte em 11 é uma
+// heurística, não uma detecção definitiva. Se o campo for usado num
+// contexto onde o tipo de documento já é conhecido (ex: login que hoje só
+// aceita CPF), prefira formatCpf/formatCnpj diretamente.
 export function formatDocument(value: string): string {
-  return formatCpf(value);
+  const digits = value.replace(/\D/g, "");
+  return digits.length > 11 ? formatCnpj(value) : formatCpf(value);
 }
 
 // Formata progressivamente enquanto o usuário digita:
