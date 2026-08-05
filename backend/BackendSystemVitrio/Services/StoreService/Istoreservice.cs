@@ -1,13 +1,12 @@
 using BackendSystemVitrio.DTO;
-
+using BackendSystemVitrio.Models;
+using BackendSystemVitrio.Wrappers;
 namespace BackendSystemVitrio.Services.StoreService
 {
     public interface IStoreService
     {
-        Task<List<StoreDto>> GetStoresByUserAsync(int userId);
-        Task<StoreDto?> GetByIdAsync(int storeId, int userId);
-        Task<StoreDto?> CreateAsync(int userId, CreateStoreDto dto);
-        Task<StoreDto?> UpdateAsync(int storeId, int userId, UpdateStoreDto dto);
-        Task<bool> DeleteAsync(int storeId, int userId);
+        Task<Response<List<StoreDto>>> GetStoresByUserAsync(int userId);
+        Task<Response<StoreDto>> CreateAsync(int userId, CreateStoreDto dto);
+        Task<Response<StoreDto>> GetByIdAsync(int storeId, int userId);
     }
 }

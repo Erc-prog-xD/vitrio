@@ -21,27 +21,15 @@ namespace BackendSystemVitrio.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var user = await _authService.RegisterAsync(dto);
-            if (user is null)
-                return BadRequest(Response<string>.Fail("CPF obrigatório, ou já existe uma conta com esse Email ou CPF."));
-
-            var token = _authService.GenerateToken(user);
-            var response = new AuthResponseDto { Token = token, ExpiresAt = DateTime.UtcNow.AddHours(8) };
-
-            return Ok(Response<AuthResponseDto>.Ok(response));
+            var response = await _authService.RegisterAsync(dto);
+            return Ok(response);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var user = await _authService.ValidateCredentialsAsync(dto);
-            if (user is null)
-                return Unauthorized(Response<string>.Fail("CPF ou senha inválidos."));
-
-            var token = _authService.GenerateToken(user);
-            var response = new AuthResponseDto { Token = token, ExpiresAt = DateTime.UtcNow.AddHours(8) };
-
-            return Ok(Response<AuthResponseDto>.Ok(response));
+            var response = await _authService.ValidateCredentialsAsync(dto);
+            return Ok(response);
         }
 
         // GET /api/Auth/me -> usado pelo frontend logo ao abrir o app pra

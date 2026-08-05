@@ -34,8 +34,9 @@ export default function Login() {
 
     try {
       const { dados } = await login({ cpf, password });
+      
       if (dados) {
-        saveToken(dados.token);
+        saveToken(dados);
 
         await refresh();
 

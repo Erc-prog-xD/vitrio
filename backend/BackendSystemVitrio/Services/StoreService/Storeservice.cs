@@ -6,6 +6,7 @@ using BackendSystemVitrio.DTO;
 using BackendSystemVitrio.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using BackendSystemVitrio.Wrappers;
 
 namespace BackendSystemVitrio.Services.StoreService
 {
@@ -18,39 +19,81 @@ namespace BackendSystemVitrio.Services.StoreService
             _context = context;
         }
 
-        public async Task<List<StoreDto>> GetStoresByUserAsync(int userId)
+        public async Task<Response<List<StoreDto>>> GetStoresByUserAsync(int userId)
         {
-            return await _context.Store
-                .Where(s => s.UserId == userId && s.DeletionDate == null)
-                .OrderByDescending(s => s.CreationDate)
-                .Select(s => ToDto(s))
-                .ToListAsync();
-        }
+            Response <List<StoreDto>> response = new Response<List<StoreDto>>();
+            try{
+                var stores = await _context.Store
+                    .Where(s => s.UserId == userId && s.DeletionDate == null)
+                    .OrderByDescending(s => s.CreationDate)
+                    .Select(s => ToDto(s))
+                    .ToListAsync();
 
-        public async Task<StoreDto?> GetByIdAsync(int storeId, int userId)
-        {
-            // Sempre filtra por UserId também: garante que um usuário não
-            // consiga ler/editar/apagar loja de outro só trocando o {id} na URL.
-            var store = await _context.Store
-                .FirstOrDefaultAsync(s => s.Id == storeId && s.UserId == userId && s.DeletionDate == null);
-
-            return store is null ? null : ToDto(store);
-        }
-
-        public async Task<StoreDto?> CreateAsync(int userId, CreateStoreDto dto)
-        {
-            var normalizedCnpj = OnlyDigits(dto.Cnpj);
-
-            if (normalizedCnpj is not null)
+                response.Dados = stores;
+                response.Status = true;
+                response.Mensagem = "Lojas do usuário recuperadas com sucesso.";
+            }
+            catch (Exception ex)
             {
-                var cnpjExists = await _context.Store.AnyAsync(s => s.Cnpj == normalizedCnpj);
-                if (cnpjExists)
-                    return null;
+                response.Dados = null;
+                response.Status = false;
+                response.Mensagem = $"Erro ao recuperar lojas do usuário: {ex.Message}";
             }
 
-            var nameExists = await _context.Store.AnyAsync(s => s.Name == dto.Name);
-            if (nameExists)
-                return null;
+            return response;
+        }
+
+        public async Task<Response<StoreDto>> GetByIdAsync(int storeId, int userId)
+        {
+            Response<StoreDto> response = new Response<StoreDto>();
+
+            try {
+                var store = await _context.Store
+                .FirstOrDefaultAsync(s => s.Id == storeId && s.UserId == userId && s.DeletionDate == null);
+
+                if(store is null){
+                    response.Dados = null;
+                    response.Status = false;
+                    response.Mensagem = "Loja não encontrada.";
+                    return response;
+                }
+                response.Dados = ToDto(store);
+                response.Status = true;
+                response.Mensagem = "Loja recuperada com sucesso.";
+
+            }   catch(Exception ex){
+                response.Dados = null;
+                response.Status = false;
+                response.Mensagem = $"Erro ao recuperar loja: {ex.Message}";
+            }
+            return response;
+        }
+
+        public async Task<Response<StoreDto>> CreateAsync(int userId, CreateStoreDto dto)
+        {
+            Response <StoreDto> response = new Response<StoreDto>();
+
+            try{
+                var normalizedCnpj = OnlyDigits(dto.Cnpj);
+                if (normalizedCnpj is not null){
+                    var cnpjExists = await _context.Store.AnyAsync(s => s.Cnpj == normalizedCnpj);
+                    if (cnpjExists)
+                    {
+                        response.Dados = null;
+                        response.Status = false;
+                        response.Mensagem = "CNPJ já cadastrado.";
+                        return response;
+                    }
+                        
+                }
+                var nameExists = await _context.Store.AnyAsync(s => s.Name == dto.Name);
+                if (nameExists)
+                {
+                    response.Dados = null;
+                    response.Status = false;
+                    response.Mensagem = "Nome da loja já cadastrado.";
+                    return response;
+                }
 
             var slug = await GenerateUniqueSlugAsync(dto.Name);
 
@@ -69,90 +112,24 @@ namespace BackendSystemVitrio.Services.StoreService
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            try
-            {
-                _context.Store.Add(store);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-            {
-                // Mesma race condition do RegisterAsync: dois requests
-                // simultâneos com o mesmo nome/CNPJ/slug.
-                await transaction.RollbackAsync();
-                return null;
-            }
-
-            return ToDto(store);
-        }
-
-        public async Task<StoreDto?> UpdateAsync(int storeId, int userId, UpdateStoreDto dto)
-        {
-            var store = await _context.Store
-                .FirstOrDefaultAsync(s => s.Id == storeId && s.UserId == userId && s.DeletionDate == null);
-
-            if (store is null)
-                return null;
-
-            if (!string.IsNullOrWhiteSpace(dto.Name) && dto.Name != store.Name)
-            {
-                var nameExists = await _context.Store.AnyAsync(s => s.Name == dto.Name && s.Id != storeId);
-                if (nameExists)
-                    return null;
-
-                store.Name = dto.Name;
-                store.Slug = await GenerateUniqueSlugAsync(dto.Name, storeId);
-            }
-
-            if (dto.Description is not null) store.Description = dto.Description;
-            if (dto.LogoUrl is not null) store.LogoUrl = dto.LogoUrl;
-            if (dto.PrimaryColor is not null) store.PrimaryColor = dto.PrimaryColor;
-            if (dto.SecondaryColor is not null) store.SecondaryColor = dto.SecondaryColor;
-            if (dto.TertiaryColor is not null) store.TertiaryColor = dto.TertiaryColor;
-            if (dto.IsActive.HasValue) store.IsActive = dto.IsActive.Value;
-
-            if (dto.Cnpj is not null)
-            {
-                var normalizedCnpj = OnlyDigits(dto.Cnpj);
-
-                if (normalizedCnpj is not null)
-                {
-                    var cnpjExists = await _context.Store.AnyAsync(s => s.Cnpj == normalizedCnpj && s.Id != storeId);
-                    if (cnpjExists)
-                        return null;
-                }
-
-                store.Cnpj = normalizedCnpj;
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-            {
-                return null;
-            }
-
-            return ToDto(store);
-        }
-
-        public async Task<bool> DeleteAsync(int storeId, int userId)
-        {
-            var store = await _context.Store
-                .FirstOrDefaultAsync(s => s.Id == storeId && s.UserId == userId && s.DeletionDate == null);
-
-            if (store is null)
-                return false;
-
-            // Soft delete: preserva histórico (produtos, pedidos etc.) e
-            // some da vitrine pública, igual ao padrão já usado em User.
-            store.DeletionDate = DateTime.UtcNow;
-            store.IsActive = false;
-
+            _context.Store.Add(store);
             await _context.SaveChangesAsync();
-            return true;
+            await transaction.CommitAsync();
+
+            response.Dados = ToDto(store);
+            response.Status = true;
+            response.Mensagem = "Loja criada com sucesso.";
+            }
+            catch (Exception ex)
+            {
+                response.Dados = null;
+                response.Status = false;
+                response.Mensagem = $"Erro ao criar loja: {ex.Message}";
+            }
+
+            return response;
         }
+
 
         private async Task<string> GenerateUniqueSlugAsync(string name, int? ignoreStoreId = null)
         {

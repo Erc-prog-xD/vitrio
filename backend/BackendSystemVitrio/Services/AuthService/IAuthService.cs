@@ -1,5 +1,6 @@
 using BackendSystemVitrio.DTO;
 using BackendSystemVitrio.Models;
+using BackendSystemVitrio.Wrappers;
 
 namespace BackendSystemVitrio.Services.AuthService
 {
@@ -8,8 +9,8 @@ namespace BackendSystemVitrio.Services.AuthService
     // ao seu IAuthService.cs real se os outros já baterem certinho.
     public interface IAuthService
     {
-        Task<User?> RegisterAsync(RegisterDto dto);
-        Task<User?> ValidateCredentialsAsync(LoginDto dto);
+        Task<Response<string>> RegisterAsync(RegisterDto dto);
+        Task<Response<string>> ValidateCredentialsAsync(LoginDto dto);
         Task<User?> GetByIdAsync(int id); // novo: usado pelo GET /api/Auth/me
         string GenerateToken(User user);
     }

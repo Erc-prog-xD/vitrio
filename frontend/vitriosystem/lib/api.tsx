@@ -26,10 +26,6 @@ export interface LoginPayload {
   password: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  expiresAt: string;
-}
 
 export interface User {
   id: number;
@@ -123,11 +119,11 @@ async function request<T>(
 // ===== Auth =====
 
 export function register(payload: RegisterPayload) {
-  return request<AuthResponse>("/api/Auth/register", "POST", payload);
+  return request<string>("/api/Auth/register", "POST", payload);
 }
 
 export function login(payload: LoginPayload) {
-  return request<AuthResponse>("/api/Auth/login", "POST", payload);
+  return request<string>("/api/Auth/login", "POST", payload);
 }
 
 // ===== Usuário logado (rota autenticada) =====

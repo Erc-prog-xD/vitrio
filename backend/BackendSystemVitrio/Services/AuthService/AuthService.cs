@@ -9,6 +9,7 @@ using BackendSystemVitrio.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using BackendSystemVitrio.Wrappers;
 
 namespace BackendSystemVitrio.Services.AuthService
 {
@@ -23,19 +24,39 @@ namespace BackendSystemVitrio.Services.AuthService
             _configuration = configuration;
         }
 
-        public async Task<User?> RegisterAsync(RegisterDto dto)
+        public async Task<Response<string>> RegisterAsync(RegisterDto dto)
         {
+
+            Response<string> response = new Response<string>();
+
+            try{
+
+            
+
             var normalizedCpf = OnlyDigits(dto.Cpf);
-            if (normalizedCpf is null)
-                return null;
+
+            if (normalizedCpf is null){
+                response.Dados = null;
+                response.Mensagem = "CPF inválido.";
+                response.Status = false;
+                return response;
+            }
 
             var cpfExists = await _context.User.AnyAsync(u => u.Cpf == normalizedCpf);
-            if (cpfExists)
-                return null;
+            if (cpfExists){
+                response.Dados = null;
+                response.Mensagem = "CPF já cadastrado.";
+                response.Status = false;
+                return response;
+            }
 
             var emailExists = await _context.User.AnyAsync(u => u.Email == dto.Email);
-            if (emailExists)
-                return null;
+            if (emailExists){
+                response.Dados = null;
+                response.Mensagem = "Email já cadastrado.";
+                response.Status = false;
+                return response;
+            }
 
             CreatePasswordHash(dto.Password, out byte[] hash, out byte[] salt);
 
@@ -52,38 +73,70 @@ namespace BackendSystemVitrio.Services.AuthService
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            try
-            {
-                _context.User.Add(user);
-                await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+            _context.User.Add(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            response.Dados = "Usuário cadastrado com sucesso.";
+            response.Mensagem = null;
+            response.Status = true;
             }
-            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+            catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                return null;
+                response.Dados = null;
+                response.Mensagem = "Erro ao cadastrar usuário: " + ex.Message;
+                response.Status = false;
             }
 
-            return user;
+            return response;
         }
 
-        public async Task<User?> ValidateCredentialsAsync(LoginDto dto)
+        public async Task<Response<string>> ValidateCredentialsAsync(LoginDto dto)
         {
+            Response<string> response = new Response<string>();
+
+            try{
+
             var cpf = OnlyDigits(dto.Cpf);
 
-            if (cpf is null)
-                return null;
+            if (cpf is null){
+                response.Dados = null;
+                response.Mensagem = "CPF inválido.";
+                response.Status = false;
+                return response;
+            }
+                
 
             var user = await _context.User.FirstOrDefaultAsync(u => u.Cpf == cpf);
 
-            if (user is null)
-                return null;
+            if (user is null){
+                response.Dados = null;
+                response.Mensagem = "Usuário não encontrado.";
+                response.Status = false;
+                return response;
+            }
 
-            if (!VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))
-                return null;
+            if (!VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt)){
+                response.Dados = null;
+                response.Mensagem = "Senha incorreta.";
+                response.Status = false;
+                return response;
+            }
+            
+            var token = GenerateToken(user);
 
-            return user;
+            response.Dados = token;
+            response.Mensagem = "Login bem-sucedido.";
+            response.Status = true;
+            }
+            catch (Exception ex)
+            {
+                response.Dados = null;
+                response.Mensagem = "Erro ao validar credenciais: " + ex.Message;
+                response.Status = false;
+            }
+            return response;
         }
 
         // Usado pelo GET /api/Auth/me: busca o usuário direto do banco a
