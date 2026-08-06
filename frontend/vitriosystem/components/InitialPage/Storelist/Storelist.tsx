@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "./Storelist.module.css";
 
 import { Plus, Store as StoreIcon, ChevronRight } from "lucide-react";
@@ -81,10 +82,10 @@ export default function Storelist() {
                             </div>
                         </div>
 
-                        <button className={styles.manageButton}>
+                        <Link href={`/store/${store.slug}`} className={styles.manageButton}>
                             Gerenciar
                             <ChevronRight size={18} />
-                        </button>
+                        </Link>
                     </div>
                 ))}
 

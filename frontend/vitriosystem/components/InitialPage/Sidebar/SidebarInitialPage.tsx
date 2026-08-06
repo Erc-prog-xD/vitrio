@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import styles from "./SidebarInitialPage.module.css";
 import {
     LayoutDashboard,
@@ -16,46 +17,69 @@ import {
 import { useAuth } from "@/lib/auth_context";
 
 interface NavItem {
-    key: string;
     label: string;
+    href: string;
     icon: LucideIcon;
 }
 
-// Sem rotas reais ainda — só controla qual item fica marcado como ativo.
-// Quando as páginas existirem, dá pra trocar esse estado por usePathname()
-// e cada item virar um <Link href="...">, aí o "ativo" passa a ser
-// determinado pela URL atual em vez de clique.
 const NAV_ITEMS: NavItem[] = [
-    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { key: "account", label: "Minha Conta", icon: User },
-    { key: "stores", label: "Lojas", icon: Store },
-    { key: "domains", label: "Domínios", icon: Globe },
-    { key: "subscription", label: "Assinatura", icon: CreditCard },
-    { key: "settings", label: "Configurações", icon: Settings },
-    { key: "support", label: "Suporte", icon: CircleHelp },
+    {
+        label: "Dashboard",
+        href: "/menu/initialpage",
+        icon: LayoutDashboard,
+    },
+    {
+        label: "Minha Conta",
+        href: "/menu/myaccount",
+        icon: User,
+    },
+    {
+        label: "Lojas",
+        href: "/menu/stores",
+        icon: Store,
+    },
+    {
+        label: "Domínios",
+        href: "/menu/domains",
+        icon: Globe,
+    },
+    {
+        label: "Assinatura",
+        href: "/menu/subscription",
+        icon: CreditCard,
+    },
+    {
+        label: "Configurações",
+        href: "/menu/settings",
+        icon: Settings,
+    },
+    {
+        label: "Suporte",
+        href: "/menu/support",
+        icon: CircleHelp,
+    },
 ];
 
 export default function SidebarInitialPage() {
+    const pathname = usePathname();
     const { logout } = useAuth();
-    const [activeKey, setActiveKey] = useState<string>("dashboard");
 
     return (
         <aside className={styles.sidebar}>
-
             <div className={styles.logo}>
                 <span>VITRIO</span>
             </div>
 
             <nav className={styles.nav}>
-                {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
-                    <a
-                        key={key}
-                        className={key === activeKey ? styles.navActive : undefined}
-                        onClick={() => setActiveKey(key)}
+                {NAV_ITEMS.map(({ label, href, icon: Icon }) => (
+                    <Link
+                        key={href}
+                        href={href}
+                        className={pathname === href ? styles.navActive : ""}
                     >
                         <Icon size={20} />
                         <span>{label}</span>
-                    </a>
+                    </Link>
                 ))}
             </nav>
 
@@ -63,7 +87,6 @@ export default function SidebarInitialPage() {
                 <LogOut size={18} />
                 <span>Sair</span>
             </button>
-
         </aside>
     );
 }

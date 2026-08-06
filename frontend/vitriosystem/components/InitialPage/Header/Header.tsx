@@ -24,10 +24,6 @@ export default function Header() {
 
   return (
     <header className={styles.header}>
-      <div className={styles.searchBar}>
-        <Search size={18} />
-        <input placeholder="Pesquisar..." />
-      </div>
 
       <div className={styles.headerRight}>
         <button className={styles.notification}>

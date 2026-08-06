@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using BackendSystemVitrio.Wrappers;
+using BackendSystemVitrio.Enum;
 
 namespace BackendSystemVitrio.Services.AuthService
 {
@@ -123,7 +124,14 @@ namespace BackendSystemVitrio.Services.AuthService
                 response.Status = false;
                 return response;
             }
-            
+
+            if (user.Role == Role.Client){
+                response.Dados = null;
+                response.Mensagem = "Este acesso é exclusivo para lojistas e administradores.";
+                response.Status = false;
+                return response;
+            }
+
             var token = GenerateToken(user);
 
             response.Dados = token;

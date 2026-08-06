@@ -2,9 +2,8 @@
 
 import styles from "./Initialpage.module.css";
 
-import SidebarInitialPage from "./Sidebar/SidebarInitialPage";
-import Header from "./Header/Header";
-import Storelist from "./Storelist/Storelist";
+import SidebarInitialPage from "@/components/InitialPage/Sidebar/SidebarInitialPage";
+import Header from "@/components/InitialPage/Header/Header";
 import { useRequireAuth } from "@/lib/auth_context";
 
 export default function Initial() {
@@ -55,7 +54,7 @@ export default function Initial() {
 
                     </div>
 
-                    <Storelist />
+                    
 
 
                 </section>

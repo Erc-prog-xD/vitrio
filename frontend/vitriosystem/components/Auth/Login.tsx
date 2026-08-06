@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { login, saveToken } from "@/lib/api";
 import { formatCpf, isValidCpf } from "@/lib/validators";
-import { useAuth, useGuestOnly} from "@/lib/auth_context";
+import { useAuth, useGuestOnly } from "@/lib/auth_context";
 import styles from "./Auth.module.css";
 
 export default function Login() {
@@ -16,10 +16,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const {loading:guestOnlyLoading} = useGuestOnly();
+  const { loading: guestOnlyLoading } = useGuestOnly();
 
-
-  
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -33,16 +31,24 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { dados } = await login({ cpf, password });
-      
-      if (dados) {
-        saveToken(dados);
+      const response = await login({ cpf, password });
 
-        await refresh();
-
-        router.replace("/initialpage");
+      // O backend responde 200 OK mesmo em erro de negócio (senha errada,
+      // CPF não encontrado, role sem permissão de acesso, etc) — quem
+      // indica sucesso ou falha é o campo "status", não o HTTP status.
+      // Por isso não dá pra confiar só em "dados" pra saber se deu certo.
+      if (!response.status || !response.dados) {
+        setError(response.mensagem ?? "Não foi possível entrar.");
+        return;
       }
+
+      saveToken(response.dados);
+      await refresh();
+
+      router.replace("/menu/initialpage");
     } catch (err) {
+      // Chega aqui só em falha de rede/servidor (erro real de HTTP),
+      // não em regra de negócio — essa já foi tratada acima.
       setError(err instanceof Error ? err.message : "Erro ao entrar.");
     } finally {
       setLoading(false);
@@ -50,7 +56,6 @@ export default function Login() {
   }
 
   if (guestOnlyLoading) return null;
-
 
   return (
     <div className={styles.authPage}>
@@ -92,7 +97,7 @@ export default function Login() {
         </form>
 
         <p className={styles.authSwitch}>
-          Não tem uma conta? <Link href="/register">Criar conta</Link>
+          Não tem uma conta? <Link href="/auth/register">Criar conta</Link>
         </p>
       </div>
     </div>

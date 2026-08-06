@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
-    router.push("/login");
+    router.push("/auth/login");
   }, [router]);
 
   const refresh = useCallback(async () => {
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     function handleUnauthorized() {
       clearToken();
       setUser(null);
-      router.push("/login");
+      router.push("/auth/login");
     }
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
@@ -95,7 +95,7 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login");
+      router.replace("/auth/login");
     }
   }, [loading, user, router]);
 
@@ -108,7 +108,7 @@ export function useGuestOnly() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/initialpage");
+      router.replace("/menu/initialpage");
     }
   }, [loading, user, router]);
 

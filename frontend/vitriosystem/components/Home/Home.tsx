@@ -19,8 +19,8 @@ export default function Home() {
         </div>
 
         <nav className={styles.nav}>
-          <Link href="/login" className={styles.btnLogin}>Login</Link>
-          <Link href="/register" className={styles.btnRegister}>Criar Conta</Link>
+          <Link href="/auth/login" className={styles.btnLogin}>Login</Link>
+          <Link href="/auth/register" className={styles.btnRegister}>Criar Conta</Link>
         </nav>
       </header>
 
@@ -36,7 +36,7 @@ export default function Home() {
             rápido e seguro.
           </p>
 
-          <Link href="/register" className={styles.btnPrimary}>
+          <Link href="/auth/register" className={styles.btnPrimary}>
             Começar Agora
           </Link>
 

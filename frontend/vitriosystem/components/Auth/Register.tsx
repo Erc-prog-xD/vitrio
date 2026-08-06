@@ -3,7 +3,7 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { register, saveToken, SHOPKEEPER_ROLE } from "@/lib/api";
+import { register, SHOPKEEPER_ROLE } from "@/lib/api";
 import { formatCpf, isValidCpf, formatPhone, isValidPhone } from "@/lib/validators";
 import styles from "./Auth.module.css";
 import { useGuestOnly } from "@/lib/auth_context";
@@ -18,8 +18,8 @@ export default function Register() {
   const [cpf, setCpf] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const {loading:guestOnlyLoading} = useGuestOnly();
-  
+  const { loading: guestOnlyLoading } = useGuestOnly();
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -39,11 +39,10 @@ export default function Register() {
       return;
     }
 
-
     setLoading(true);
 
     try {
-      const { dados } = await register({
+      const response = await register({
         name,
         email,
         password,
@@ -52,10 +51,21 @@ export default function Register() {
         cpf: cpf.trim(), // já validado acima e agora é obrigatório na API
       });
 
-      if (dados) {
-        router.push("/");
+      // Assim como no login, o backend responde 200 OK mesmo quando a
+      // regra de negócio falha (CPF/e-mail já cadastrado, CPF inválido
+      // na revalidação do servidor, etc) — quem indica isso é "status",
+      // não o HTTP status. Sem essa checagem o erro passava batido.
+      if (!response.status) {
+        setError(response.mensagem ?? "Não foi possível criar a conta.");
+        return;
       }
+
+      // RegisterAsync não gera token — só cria o usuário. Por isso aqui
+      // manda pro login em vez de já autenticar direto.
+      router.push("/auth/login");
     } catch (err) {
+      // Chega aqui só em falha de rede/servidor, não em regra de negócio
+      // (essa já foi tratada acima).
       setError(err instanceof Error ? err.message : "Erro ao criar conta.");
     } finally {
       setLoading(false);
@@ -127,7 +137,7 @@ export default function Register() {
         </form>
 
         <p className={styles.authSwitch}>
-          Já tem uma conta? <Link href="/login">Entrar</Link>
+          Já tem uma conta? <Link href="/auth/login">Entrar</Link>
         </p>
       </div>
     </div>

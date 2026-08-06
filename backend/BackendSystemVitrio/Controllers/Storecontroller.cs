@@ -9,7 +9,7 @@ namespace BackendSystemVitrio.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // exige o JWT gerado no login/registro
+    [Authorize(Roles = "Shopkeeper,Admin")] // exige o JWT gerado no login/registro
     public class StoreController : ControllerBase
     {
         private readonly IStoreService _storeService;
