@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using System.Text;
 using BackendSystemVitrio.Services.AuthService;
-using BackendSystemVitrio.Services.StoreService; // faltava esse: IStoreService/StoreService vivem aqui, não em Services.AuthService
+using BackendSystemVitrio.Services.StoreService; 
+using BackendSystemVitrio.Services.UserService;
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.Middlewares;
 
@@ -48,6 +49,7 @@ builder.Services.AddSwaggerGen(options =>
 // Registrar o AuthService e IStoreService
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IStoreService, StoreService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Configurar autenticação JWT
 builder.Services.AddAuthentication(options =>

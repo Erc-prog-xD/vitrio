@@ -26,6 +26,11 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface updateProfilePayload {
+  name: string;
+  email: string;
+  phone: string;
+}
 
 export interface User {
   id: number;
@@ -152,4 +157,8 @@ export function updateStore(id: number, payload: UpdateStorePayload) {
 
 export function deleteStore(id: number) {
   return request<string>(`/api/Store/${id}`, "DELETE", undefined, true);
+}
+
+export function updateMyProfile(payload: updateProfilePayload) {
+  return request<string>("/api/User/update-profile", "PUT", payload, true);
 }

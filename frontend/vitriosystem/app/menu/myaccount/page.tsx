@@ -6,6 +6,8 @@ import SidebarInitialPage from "@/components/InitialPage/Sidebar/SidebarInitialP
 import Header from "@/components/InitialPage/Header/Header";
 import Storelist from "@/components/InitialPage/Storelist/Storelist";
 import { useRequireAuth } from "@/lib/auth_context";
+import { Edit } from "lucide-react";
+import EditProfileForm from "@/components/InitialPage/ProfileEdit/Editprofileform";
 
 export default function Initial() {
     const { user, loading } = useRequireAuth();
@@ -55,7 +57,7 @@ export default function Initial() {
 
                     </div>
 
-
+                    <EditProfileForm />
                 </section>
 
             </main>
