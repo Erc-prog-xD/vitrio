@@ -4,9 +4,7 @@ import styles from "./Initialpage.module.css";
 
 import SidebarInitialPage from "@/components/InitialPage/Sidebar/SidebarInitialPage";
 import Header from "@/components/InitialPage/Header/Header";
-import Storelist from "@/components/InitialPage/Storelist/Storelist";
 import { useRequireAuth } from "@/lib/auth_context";
-import { Edit } from "lucide-react";
 import EditProfileForm from "@/components/InitialPage/ProfileEdit/Editprofileform";
 
 export default function Initial() {

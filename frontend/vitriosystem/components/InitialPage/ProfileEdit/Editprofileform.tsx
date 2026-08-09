@@ -5,7 +5,7 @@ import styles from "./Editprofileform.module.css";
 
 import { User, Mail, Phone, Loader2, Check, AlertCircle, type LucideIcon } from "lucide-react";
 import { updateMyProfile } from "@/lib/api";
-import { formatPhone, isValidPhone } from "@/lib/validators";
+import {formatPhone, isvalidEmail, isValidPhone } from "@/lib/validators";
 
 export interface ProfileData {
     name: string;
@@ -21,7 +21,6 @@ interface EditProfileFormProps {
 type Status = "idle" | "loading" | "success" | "error";
 type FieldErrors = Partial<Record<keyof ProfileData, string>>;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function EditProfileForm({
     initialData = { name: "", email: "", phone: "" },
@@ -32,34 +31,11 @@ export default function EditProfileForm({
     const [status, setStatus] = useState<Status>("idle");
     const [message, setMessage] = useState("");
 
-    function clearStatus() {
-        setErrors((prev) => ({ ...prev, phone: undefined }));
-        if (status !== "idle") {
-            setStatus("idle");
-            setMessage("");
-        }
-    }
 
-    function handleChange(field: keyof ProfileData) {
-        return (e: ChangeEvent<HTMLInputElement>) => {
-            setForm((prev) => ({ ...prev, [field]: e.target.value }));
-            setErrors((prev) => ({ ...prev, [field]: undefined }));
-            if (status !== "idle") {
-                setStatus("idle");
-                setMessage("");
-            }
-        };
-    }
-
-    // Formata progressivamente (00) 00000-0000 enquanto o usuário digita.
-    function handlePhoneChange(e: ChangeEvent<HTMLInputElement>) {
-        setForm((prev) => ({ ...prev, phone: formatPhone(e.target.value) }));
-        clearStatus();
-    }
 
     function validate() {
         const next: FieldErrors = {};
-        if (form.email.trim() && !EMAIL_REGEX.test(form.email.trim())) {
+        if (form.email.trim() && !isvalidEmail(form.email.trim())) {
             next.email = "Informe um e-mail válido.";
         }
         if (form.phone.trim() && !isValidPhone(form.phone.trim())) {
@@ -122,7 +98,7 @@ export default function EditProfileForm({
                     label="Nome"
                     icon={User}
                     value={form.name}
-                    onChange={handleChange("name")}
+                    onChange={e => setForm((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="Seu nome completo"
                     error={errors.name}
                     disabled={isLoading}
@@ -134,7 +110,7 @@ export default function EditProfileForm({
                     icon={Mail}
                     type="email"
                     value={form.email}
-                    onChange={handleChange("email")}
+                    onChange={e => setForm((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="voce@exemplo.com"
                     error={errors.email}
                     disabled={isLoading}
@@ -148,7 +124,7 @@ export default function EditProfileForm({
                     inputMode="numeric"
                     maxLength={15}
                     value={form.phone}
-                    onChange={handlePhoneChange}
+                    onChange={e => setForm((prev) => ({ ...prev, phone: formatPhone(e.target.value) }))}
                     placeholder="(00) 00000-0000"
                     error={errors.phone}
                     disabled={isLoading}

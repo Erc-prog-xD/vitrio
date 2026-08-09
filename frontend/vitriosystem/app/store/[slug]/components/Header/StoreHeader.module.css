@@ -1,0 +1,89 @@
+.header {
+    height: 78px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #111827;
+}
+
+.logoIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.logoImg {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.loginLink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.loginLink:hover {
+    color: #2563eb;
+}
+
+.registerButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: .2s;
+}
+
+.registerButton:hover {
+    background: #1d4ed8;
+}
+
+@media (max-width: 576px) {
+    .header {
+        padding: 0 16px;
+    }
+
+    .brand span {
+        display: none;
+    }
+
+    .loginLink span,
+    .registerButton span {
+        display: none;
+    }
+}

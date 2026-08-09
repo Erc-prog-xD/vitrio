@@ -8,6 +8,14 @@ export function formatCpf(value: string): string {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+export function isvalidEmail(value: string): string | undefined {
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (EMAIL_REGEX.test(value)) {
+    return value;
+  }
+}
+
+
 // Formata progressivamente enquanto o usuário digita: 00.000.000/0000-00
 export function formatCnpj(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 14);
