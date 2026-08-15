@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Store as StoreIcon, Pencil } from "lucide-react";
 import { getMyStores, type Store } from "@/lib/api";
-import styles from "./page.module.css";
+import styles from "./SlugPage.module.css";
 
 export default function GerenciarLojaPage() {
     const { slug } = useParams<{ slug: string }>();

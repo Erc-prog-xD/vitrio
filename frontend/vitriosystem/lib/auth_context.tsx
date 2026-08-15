@@ -114,3 +114,26 @@ export function useGuestOnly() {
 
   return { loading };
 }
+
+// Hook pra páginas que exigem um role específico (ex: layout do shopkeeper).
+// Se não tiver logado, manda pro login. Se tiver logado mas com role errada,
+// manda pra home (não pro login, já que ele está autenticado).
+export function useRequireRole(allowedRoles: string[]) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    if (!allowedRoles.includes(user.role)) {
+      router.replace("/menu/initialpage");
+    }
+  }, [loading, user, allowedRoles, router]);
+
+  return { user, loading };
+}

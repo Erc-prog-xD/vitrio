@@ -6,6 +6,12 @@ export type ApiResponse<T> = {
   status: boolean;
 };
 
+export const ROLES = {
+  CLIENT: "Client",
+  ADMIN: "Admin",
+  SHOPKEEPER: "Shopkeeper",
+} as const;
+
 // Este formulário público só cria contas de Lojista (Shopkeeper = 2).
 // Contas de Cliente (Client = 0) são criadas depois, dentro do sistema da loja,
 // usando a mesma tabela User. Admin (1) não é auto-registrável.

@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./Initialpage.module.css";
+import styles from "./Stores.module.css";
 
 import SidebarInitialPage from "@/components/InitialPage/Sidebar/SidebarInitialPage";
 import Header from "@/components/InitialPage/Header/Header";
