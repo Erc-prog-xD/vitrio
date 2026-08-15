@@ -11,6 +11,10 @@ namespace BackendSystemVitrio.Data
 
         public DbSet<User> User { get; set; }
         public DbSet<Store> Store { get; set; }
+        public DbSet<Product> Product {get; set;}
+        public DbSet<Category> Category {get; set;}
+        public DbSet<ProductImage> ProductImage {get; set;}
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
