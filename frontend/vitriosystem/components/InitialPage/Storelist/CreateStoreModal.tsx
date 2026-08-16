@@ -5,6 +5,7 @@ import { X, Store as StoreIcon } from "lucide-react";
 import { createStore, type Store, type CreateStorePayload } from "@/lib/api";
 import { formatCnpj, isValidCnpj } from "@/lib/validators";
 import styles from "./CreateStoreModal.module.css";
+import { uploadImage } from "@/app/api/upload/upload";
 
 interface CreateStoreModalProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
   const [cnpj, setCnpj] = useState("");
   const [description, setDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [secondaryColor, setSecondaryColor] = useState(DEFAULT_SECONDARY);
   const [tertiaryColor, setTertiaryColor] = useState(DEFAULT_TERTIARY);
@@ -67,6 +69,23 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
       setLoading(false);
     }
   }
+
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+    setUploading(true);
+
+    try {
+      const url = await uploadImage(file);
+      setLogoUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao enviar a imagem.");
+    } finally {
+      setUploading(false);
+    }
+}
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -117,13 +136,18 @@ export default function CreateStoreModal({ onClose, onCreated }: CreateStoreModa
             rows={3}
           />
 
-          <label htmlFor="storeLogo">URL do logo</label>
+          <label htmlFor="storeLogo">Logo da loja</label>
           <input
             id="storeLogo"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            placeholder="https://..."
+            type="file"
+            accept="image/*"
+            onChange={handleLogoChange}
+            disabled={uploading}
           />
+          {uploading && <p className={styles.modalHint}>Enviando imagem...</p>}
+          {logoUrl && (
+            <img src={logoUrl} alt="Preview do logo" className={styles.logoPreview} />
+          )}
 
           <div className={styles.colorRow}>
             <div className={styles.colorField}>
