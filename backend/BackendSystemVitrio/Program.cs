@@ -6,6 +6,7 @@ using System.Text;
 using BackendSystemVitrio.Services.AuthService;
 using BackendSystemVitrio.Services.StoreService; 
 using BackendSystemVitrio.Services.UserService;
+using BackendSystemVitrio.Services.CategoryService;
 using BackendSystemVitrio.Data;
 using BackendSystemVitrio.Middlewares;
 
@@ -50,6 +51,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IStoreService, StoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Configurar autenticação JWT
 builder.Services.AddAuthentication(options =>

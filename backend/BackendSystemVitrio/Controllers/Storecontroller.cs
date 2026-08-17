@@ -44,7 +44,6 @@ namespace BackendSystemVitrio.Controllers
         }
 
 
-        // Lê o Id do usuário a partir do claim colocado no token pelo AuthService.GenerateToken.
         private int GetUserId()
         {
             var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
