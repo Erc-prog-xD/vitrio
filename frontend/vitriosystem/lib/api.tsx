@@ -12,9 +12,6 @@ export const ROLES = {
   SHOPKEEPER: "Shopkeeper",
 } as const;
 
-// Este formulário público só cria contas de Lojista (Shopkeeper = 2).
-// Contas de Cliente (Client = 0) são criadas depois, dentro do sistema da loja,
-// usando a mesma tabela User. Admin (1) não é auto-registrável.
 export const SHOPKEEPER_ROLE = 2 as const;
 export type Role = typeof SHOPKEEPER_ROLE;
 
@@ -24,11 +21,11 @@ export interface RegisterPayload {
   password: string;
   role: Role;
   phone?: string;
-  cpf: string; // agora obrigatório: é a credencial de login
+  cpf: string;
 }
 
 export interface LoginPayload {
-  cpf: string; // login não aceita mais CNPJ, só CPF
+  cpf: string;
   password: string;
 }
 
@@ -75,50 +72,104 @@ export interface UpdateStorePayload extends Partial<CreateStorePayload> {
   isActive?: boolean;
 }
 
-const TOKEN_KEY = "vitrio_token";
+// ===== Access Token em memória (nunca em localStorage/cookie legível por JS) =====
+// Perdido a cada reload — é esperado. O AuthProvider recupera um novo
+// automaticamente no boot da aplicação usando o refresh token (cookie HttpOnly).
 
-export function saveToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token);
+let accessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  accessToken = token;
 }
 
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+export function getAccessToken(): string | null {
+  return accessToken;
 }
 
-export function logout() {
-  localStorage.removeItem(TOKEN_KEY);
+// ===== Requisição base =====
+
+let refreshPromise: Promise<boolean> | null = null;
+
+async function parseResponse<T>(res: Response): Promise<ApiResponse<T>> {
+  const rawText = await res.text();
+
+  if (!rawText) {
+    return { dados: null, mensagem: res.ok ? null : "Erro ao processar a solicitação.", status: res.ok };
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    return { dados: null, mensagem: "Resposta inválida do servidor.", status: false };
+  }
 }
 
-async function request<T>(
+// Chama /api/Auth/refresh usando o cookie HttpOnly. Deduplica chamadas
+// concorrentes (se 3 requisições tomarem 401 ao mesmo tempo, só dispara 1 refresh).
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/Auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        const data = await parseResponse<string>(res);
+
+        if (res.ok && data.status && data.dados) {
+          setAccessToken(data.dados);
+          return true;
+        }
+
+        setAccessToken(null);
+        return false;
+      } catch {
+        setAccessToken(null);
+        return false;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+
+  return refreshPromise;
+}
+
+export async function request<T>(
   path: string,
   method: "GET" | "POST" | "PUT" | "DELETE",
   body?: unknown,
-  auth = false
+  auth = false,
+  isRetry = false
 ): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
 
-  if (auth) {
-    const token = getToken();
-    if (!token) throw new Error("Sessão expirada. Faça login novamente.");
-    headers.Authorization = `Bearer ${token}`;
+  if (auth && accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
   }
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers,
+    credentials: "include", // sempre manda o cookie do refresh token, mesmo em rotas sem "auth"
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
-  // 204 No Content ou corpo vazio não tem JSON pra parsear.
-  const data: ApiResponse<T> =
-    res.status === 204 ? { dados: null, mensagem: null, status: res.ok } : await res.json();
+  // Access token expirou no meio da sessão: tenta renovar 1 vez e refaz a chamada original.
+  if (res.status === 401 && auth && !isRetry) {
+    const refreshed = await tryRefreshAccessToken();
 
-  if (res.status === 401 && auth && typeof window !== "undefined") {
-    // Token expirou ou foi invalidado no meio da sessão (não só no load
-    // inicial). O AuthProvider escuta esse evento e desloga automaticamente.
-    window.dispatchEvent(new Event("auth:unauthorized"));
+    if (refreshed) {
+      return request<T>(path, method, body, auth, true);
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth:unauthorized"));
+    }
   }
+
+  const data = await parseResponse<T>(res);
 
   if (!res.ok) {
     throw new Error(data.mensagem ?? "Erro ao processar a solicitação.");
@@ -133,8 +184,28 @@ export function register(payload: RegisterPayload) {
   return request<string>("/api/Auth/register", "POST", payload);
 }
 
-export function login(payload: LoginPayload) {
-  return request<string>("/api/Auth/login", "POST", payload);
+export async function login(payload: LoginPayload) {
+  const response = await request<string>("/api/Auth/login", "POST", payload);
+
+  if (response.status && response.dados) {
+    setAccessToken(response.dados);
+  }
+
+  return response;
+}
+
+export async function logout() {
+  try {
+    await request<string>("/api/Auth/logout", "POST", undefined, false);
+  } finally {
+    setAccessToken(null);
+  }
+}
+
+// Chamado no boot do app: tenta recuperar um access token a partir do
+// refresh token guardado no cookie HttpOnly. Retorna se conseguiu ou não.
+export async function bootstrapSession(): Promise<boolean> {
+  return tryRefreshAccessToken();
 }
 
 // ===== Usuário logado (rota autenticada) =====

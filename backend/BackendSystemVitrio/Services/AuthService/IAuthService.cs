@@ -10,8 +10,9 @@ namespace BackendSystemVitrio.Services.AuthService
     public interface IAuthService
     {
         Task<Response<string>> RegisterAsync(RegisterDto dto);
-        Task<Response<string>> ValidateCredentialsAsync(LoginDto dto);
-        Task<User?> GetByIdAsync(int id); // novo: usado pelo GET /api/Auth/me
-        string GenerateToken(User user);
+        Task<Response<AuthResultDto>> ValidateCredentialsAsync(LoginDto dto);
+        Task<Response<AuthResultDto>> RefreshTokenAsync(string refreshToken);
+        Task<Response<string>> RevokeRefreshTokenAsync(string refreshToken);
+        Task<User?> GetByIdAsync(int id);
     }
 }

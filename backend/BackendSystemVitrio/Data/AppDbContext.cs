@@ -14,6 +14,7 @@ namespace BackendSystemVitrio.Data
         public DbSet<Product> Product {get; set;}
         public DbSet<Category> Category {get; set;}
         public DbSet<ProductImage> ProductImage {get; set;}
+        public DbSet<RefreshToken> RefreshToken { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -49,6 +50,10 @@ namespace BackendSystemVitrio.Data
                 .WithMany(u => u.Stores)
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.Token)
+            .IsUnique();
         }
     }
 }

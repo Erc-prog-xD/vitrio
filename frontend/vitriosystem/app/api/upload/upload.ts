@@ -1,15 +1,18 @@
-import { getToken } from "../../../lib/api";
-
 // lib/api_cloudinary.ts
+import { getAccessToken } from "../../../lib/api";
+
 export async function uploadImage(file: File): Promise<string> {
+  const token = getAccessToken();
+  if (!token) throw new Error("Sessão expirada. Faça login novamente.");
+
   const formData = new FormData();
   formData.append("file", file);
 
-    const res = await fetch("/api/upload", {
+  const res = await fetch("/api/upload", {
     method: "POST",
-    headers: { Authorization: `Bearer ${getToken()}` },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
-    });
+  });
 
   const data = await res.json();
 

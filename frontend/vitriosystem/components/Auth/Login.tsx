@@ -3,7 +3,7 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login, saveToken } from "@/lib/api";
+import { login } from "@/lib/api";
 import { formatCpf, isValidCpf } from "@/lib/validators";
 import { useAuth, useGuestOnly } from "@/lib/auth_context";
 import styles from "./Auth.module.css";
@@ -22,7 +22,6 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    // Login agora é só por CPF (CNPJ é dado da loja, não credencial de acesso).
     if (!isValidCpf(cpf)) {
       setError("Informe um CPF válido.");
       return;
@@ -33,22 +32,16 @@ export default function Login() {
     try {
       const response = await login({ cpf, password });
 
-      // O backend responde 200 OK mesmo em erro de negócio (senha errada,
-      // CPF não encontrado, role sem permissão de acesso, etc) — quem
-      // indica sucesso ou falha é o campo "status", não o HTTP status.
-      // Por isso não dá pra confiar só em "dados" pra saber se deu certo.
       if (!response.status || !response.dados) {
         setError(response.mensagem ?? "Não foi possível entrar.");
         return;
       }
 
-      saveToken(response.dados);
+      // login() já guardou o access token em memória; refresh() busca o usuário.
       await refresh();
 
       router.replace("/menu/initialpage");
     } catch (err) {
-      // Chega aqui só em falha de rede/servidor (erro real de HTTP),
-      // não em regra de negócio — essa já foi tratada acima.
       setError(err instanceof Error ? err.message : "Erro ao entrar.");
     } finally {
       setLoading(false);

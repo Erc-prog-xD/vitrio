@@ -9,8 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, logout as clearToken, getMe, type User } from "./api";
-import { isTokenExpired } from "./jwt";
+import { logout as clearSession, getMe, bootstrapSession, type User } from "./api";
 
 interface AuthContextValue {
   user: User | null;
@@ -26,31 +25,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const logout = useCallback(() => {
-    clearToken();
+  const logout = useCallback(async () => {
+    await clearSession();
     setUser(null);
     router.push("/auth/login");
   }, [router]);
 
   const refresh = useCallback(async () => {
-    const token = getToken();
-
-    // Sem token, ou token obviamente vencido: nem chama o backend.
-    if (!token || isTokenExpired(token)) {
-      clearToken();
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
-      // Busca do banco (não só decodifica o token) pra pegar dado
-      // atualizado e confirmar que o token ainda é aceito pelo backend
-      // (ex: usuário foi desativado, chave JWT mudou, etc).
+      // Tenta recuperar um access token novo a partir do cookie HttpOnly.
+      const hasSession = await bootstrapSession();
+
+      if (!hasSession) {
+        setUser(null);
+        return;
+      }
+
       const { dados } = await getMe();
       setUser(dados);
     } catch {
-      clearToken();
       setUser(null);
     } finally {
       setLoading(false);
@@ -61,11 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
-  // Qualquer chamada autenticada que tomar 401 (token expirou no meio da
-  // sessão, por exemplo) dispara esse evento globalmente — não só o /me.
   useEffect(() => {
     function handleUnauthorized() {
-      clearToken();
       setUser(null);
       router.push("/auth/login");
     }
@@ -87,8 +79,6 @@ export function useAuth() {
   return ctx;
 }
 
-// Hook pra páginas protegidas (dashboard, etc): redireciona pro /login se
-// não tiver usuário logado, depois que o carregamento inicial terminar.
 export function useRequireAuth() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -115,9 +105,6 @@ export function useGuestOnly() {
   return { loading };
 }
 
-// Hook pra páginas que exigem um role específico (ex: layout do shopkeeper).
-// Se não tiver logado, manda pro login. Se tiver logado mas com role errada,
-// manda pra home (não pro login, já que ele está autenticado).
 export function useRequireRole(allowedRoles: string[]) {
   const { user, loading } = useAuth();
   const router = useRouter();

@@ -12,6 +12,7 @@ namespace BackendSystemVitrio.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private const string RefreshTokenCookieName = "vitrio_refresh_token";
 
         public AuthController(IAuthService authService)
         {
@@ -28,13 +29,48 @@ namespace BackendSystemVitrio.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var response = await _authService.ValidateCredentialsAsync(dto);
-            return Ok(response);
+            var result = await _authService.ValidateCredentialsAsync(dto);
+
+            if (!result.Status || result.Dados is null)
+                return Ok(Response<string>.Fail(result.Mensagem ?? "Não foi possível entrar."));
+
+            SetRefreshTokenCookie(result.Dados.RefreshToken);
+
+            // Só o access token vai no corpo — o refresh token fica exclusivamente no cookie HttpOnly.
+            return Ok(Response<string>.Ok(result.Dados.AccessToken, "Login bem-sucedido."));
         }
 
-        // GET /api/Auth/me -> usado pelo frontend logo ao abrir o app pra
-        // saber quem está logado (e se o token ainda é válido) e popular
-        // a tela com os dados reais do usuário.
+        // POST /api/Auth/refresh -> chamado automaticamente pelo frontend quando
+        // o access token expira. Não precisa de [Authorize]: a credencial aqui
+        // é o refresh token do cookie, não o access token (que já expirou).
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+            var result = await _authService.RefreshTokenAsync(refreshToken ?? "");
+
+            if (!result.Status || result.Dados is null)
+            {
+                DeleteRefreshTokenCookie();
+                return Unauthorized(Response<string>.Fail(result.Mensagem ?? "Sessão expirada."));
+            }
+
+            SetRefreshTokenCookie(result.Dados.RefreshToken);
+
+            return Ok(Response<string>.Ok(result.Dados.AccessToken, "Sessão renovada."));
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+            await _authService.RevokeRefreshTokenAsync(refreshToken ?? "");
+
+            DeleteRefreshTokenCookie();
+
+            return Ok(Response<string>.Ok("", "Sessão encerrada."));
+        }
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()
@@ -56,6 +92,32 @@ namespace BackendSystemVitrio.Controllers
             };
 
             return Ok(Response<UserDto>.Ok(dto));
+        }
+
+        private void SetRefreshTokenCookie(string token)
+        {
+            Response.Cookies.Append(RefreshTokenCookieName, token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,       // exige HTTPS — em dev local via http, ver nota abaixo
+                SameSite = SameSiteMode.None, // frontend (3000) e backend (5020) são origens diferentes
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                Path = "/api/Auth"   // cookie só é enviado pras rotas de Auth, reduz exposição
+            });
+        }
+
+        // Precisa repetir EXATAMENTE as mesmas opções usadas no Append (Path, Secure,
+        // SameSite) — o navegador identifica o cookie por nome + domínio + path, então
+        // um Delete sem Path bate num cookie "diferente" e o original nunca é removido.
+        private void DeleteRefreshTokenCookie()
+        {
+            Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/api/Auth"
+            });
         }
     }
 }

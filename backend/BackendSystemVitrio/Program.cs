@@ -23,9 +23,6 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API do sistema Vitrio"
     });
 
-    // Sem isso o Swagger UI não mostra o botão "Authorize": ele não sabe
-    // que a API usa Bearer token, então não tem como anexar o JWT nas
-    // chamadas de rotas com [Authorize] (ex: StoreController).
     var bearerScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -38,22 +35,17 @@ builder.Services.AddSwaggerGen(options =>
 
     options.AddSecurityDefinition("Bearer", bearerScheme);
 
-    // Padrão do Swashbuckle 10 / Microsoft.OpenApi v2: a referência ao
-    // esquema precisa do próprio "document" (parâmetro da lambda), não
-    // só do Id como string solta.
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 
-// Registrar o AuthService e IStoreService
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IStoreService, StoreService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// Configurar autenticação JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -77,7 +69,6 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configurar CORS para o frontend
 const string CorsPolicy = "FrontendPolicy";
 
 builder.Services.AddCors(options =>
@@ -86,7 +77,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // permite envio/recebimento do cookie HttpOnly do refresh token
     });
 });
 
@@ -104,9 +96,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(CorsPolicy); // precisa vir ANTES de UseAuthentication/UseAuthorization
+app.UseCors(CorsPolicy);
 
-app.UseAuthentication(); // precisa vir ANTES de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
